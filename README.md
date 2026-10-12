@@ -54,13 +54,13 @@ As chamadas saem só do servidor, com o SDK `@google/genai`, e agora exigem a se
 
 O mascaramento não cobre apelido, erro de digitação, iniciais, nome de outra pessoa escrito no mesmo texto, nem palavra de uma ou duas letras. Turma e componente seguem por extenso.
 
-O servidor não guarda o dossiê do Gemini. Há um limite de 8 análises a cada 10 minutos por IP confiável (`x-real-ip`) e um teto de 40 na mesma janela para o processo. O contador fica na memória da instância: outro processo começa do zero. Não é trava global nem controle de acesso. O tempo máximo de uma chamada é 20 segundos.
+O servidor não guarda o dossiê do Gemini. Há um limite de 8 análises a cada 10 minutos por IP confiável (`x-real-ip`) e um teto de 40 na mesma janela para o processo. O contador fica na memória da instância: outro processo começa do zero. Não é trava global nem controle de acesso. O tempo máximo de uma chamada é 45 segundos. O modelo não usa orçamento de raciocínio, para o JSON não sair vazio.
 
 Texto inválido, chave ausente, chave recusada, cota esgotada, tempo esgotado ou período sem registros devolve uma mensagem curta. A chave e o corpo do provedor não entram nessa mensagem. Sem `GEMINI_API_KEY`, nada é inventado no lugar da resposta.
 
 Ações: organizar observação, gerar parecer para revisar, analisar evolução, sugerir intervenções. Fatos de média e frequência são calculados aqui. A leitura do modelo pode, ainda assim, escrever um número que não está nos fatos. Só “Salvar como observação” grava, e grava só o texto editado.
 
-O modelo padrão é o alias `gemini-flash-latest`, substituível por `GEMINI_MODEL`. Neste ambiente não houve chamada real à API para confirmar o alias nem o esquema JSON.
+O modelo padrão é `gemini-2.5-flash`. `GEMINI_MODEL=gemini-flash-latest` também cai nesse modelo, porque o alias atrasava ou devolvia resposta vazia. Outro nome em `GEMINI_MODEL` é respeitado.
 
 ## Configuração
 
@@ -70,7 +70,7 @@ Gemini, só no servidor (sem prefixo `VITE_`):
 
 ```
 GEMINI_API_KEY=sua-chave
-GEMINI_MODEL=gemini-flash-latest
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 `GEMINI_MODEL` é opcional. Na Vercel, em Project Settings → Environment Variables, crie `GEMINI_API_KEY` e, se quiser, `GEMINI_MODEL`, e publique de novo.

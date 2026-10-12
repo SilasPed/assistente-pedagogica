@@ -183,8 +183,8 @@ export function ConsultView({
         </label>
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-muted">Aluno</span>
-          <select className={controlClassName()} value={student ? student.id : "all"} onChange={(e) => onStudentId(e.target.value)}>
-            <option value="all">Turma inteira</option>
+          <select aria-label="Aluno" className={controlClassName()} value={student ? student.id : "all"} onChange={(e) => onStudentId(e.target.value)}>
+            <option value="all">Todos os alunos</option>
             {classStudents.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
 import { reportToBlob } from "@/lib/pedagogico/report-docx";
-import { SCHOOL_NAME, type ReportDraft } from "@/lib/pedagogico/report";
+import { reportSignatureLine, SCHOOL_NAME, type ReportDraft } from "@/lib/pedagogico/report";
 
 const SECTIONS: { key: keyof ReportDraft; label: string }[] = [
   { key: "quantitativo", label: "Registros quantitativos do período" },
@@ -100,7 +100,7 @@ export function ReportPanel({
         </label>
       ))}
       <p className="text-sm text-muted">
-        {draft.place.trim() || "Local"} , {draft.dateLabel || "data"}. Assinatura: {draft.teacher.trim() || "Professor(a)"}.
+        {reportSignatureLine(draft.place, draft.dateLabel)} Assinatura: {draft.teacher.trim() || "Professor(a)"}.
       </p>
       {error ? <p className="text-sm">{error}</p> : null}
       <div className="flex flex-col gap-2 sm:flex-row">

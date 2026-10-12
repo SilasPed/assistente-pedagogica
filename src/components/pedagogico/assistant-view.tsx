@@ -38,6 +38,9 @@ export function AssistantView({ today }: { today: Date }) {
   const [draft, setDraft] = useState("");
   const [category, setCategory] = useState<Category>("geral");
   const [saved, setSaved] = useState(false);
+  if (data.classes.length > 0 && !data.classes.some((item) => item.id === classId)) {
+    setClassId(data.classes[0].id);
+  }
 
   const room = data.classes.find((item) => item.id === classId) ?? data.classes[0];
   const students = data.students
@@ -186,10 +189,7 @@ export function AssistantView({ today }: { today: Date }) {
           </span>
         </div>
         <p className="text-sm text-muted">
-          A leitura sai só para você revisar. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta. O pedido segue com o nome mascarado e só com o recorte do período.
-        </p>
-        <p className="text-sm text-muted">
-          O texto gerado não é salvo sozinho e não altera nota nem frequência. Login identifica a conta, mas não impede o modelo de errar. Não trate a leitura como parecer oficial.
+          Leitura só para revisar: nome mascarado, só o período, e nada é salvo sozinho.
         </p>
         {configured === false ? (
           <p className="text-sm text-muted">GEMINI_API_KEY não está definida neste ambiente.</p>

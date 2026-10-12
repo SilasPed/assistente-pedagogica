@@ -10,6 +10,7 @@ import { Button, controlClassName } from "@/components/pedagogico/ui";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatLong, isoDate } from "@/lib/pedagogico/dates";
+import { DEFAULT_PLACE } from "@/lib/pedagogico/report";
 import { createSeed } from "@/lib/pedagogico/seed";
 import { TEST_PUBLICATION } from "@/lib/pedagogico/test-publication";
 import { usePedStore } from "@/lib/pedagogico/store";
@@ -39,7 +40,7 @@ export function PedagogicoApp() {
   useEffect(() => setMounted(true), []);
   if (!mounted || isPending) return <LoadingShell label="Abrindo a sessão…" />;
   if (!user) return <TeacherLogin />;
-  return <WorkspaceHost userId={user.id} />;
+  return <WorkspaceHost userId={user.id} accountName={user.displayName?.trim() ?? ""} />;
 }
 
 function LoadingShell({ label }: { label: string }) {
@@ -57,7 +58,7 @@ function LoadingShell({ label }: { label: string }) {
   );
 }
 
-function WorkspaceHost({ userId }: { userId: string }) {
+function WorkspaceHost({ userId, accountName }: { userId: string; accountName: string }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [teacherName, setTeacherName] = useState("");
   const [place, setPlace] = useState("");
@@ -84,8 +85,8 @@ function WorkspaceHost({ userId }: { userId: string }) {
       .then((result) => {
         if (!active) return;
         if (result.data && pedHasRows(result.data)) usePedStore.getState().replaceAll(result.data);
-        setTeacherName(result.teacherName);
-        setPlace(result.place);
+        setTeacherName(result.teacherName.trim() || accountName);
+        setPlace(result.place.trim() || DEFAULT_PLACE);
         const stored = readLegacyPedData();
         setLegacy(stored && pedHasRows(stored) ? stored : null);
         setPhase("ready");

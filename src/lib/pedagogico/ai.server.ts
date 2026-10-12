@@ -12,7 +12,7 @@ import {
   type AssistInput,
   type FactSheet,
 } from "./ai-contract.ts";
-import { GeminiCallError, geminiFailureMessage, geminiModel, generateGeminiJson } from "./gemini.server.ts";
+import { GeminiCallError, geminiFailureMessage, geminiModel, GEMINI_TIMEOUT_MS, generateGeminiJson } from "./gemini.server.ts";
 import type { Category } from "./types.ts";
 
 export type AssistSuccess = {
@@ -186,7 +186,7 @@ export async function assistWith(
   const dossier = dossierForModel(input, sheet);
   const schema = input.action === "organizar" ? organizeResponseSchema : analysisResponseSchema;
   const user = `${taskPrompt(input)}\n\n${JSON.stringify(dossier)}`;
-  const signal = AbortSignal.timeout(20_000);
+  const signal = AbortSignal.timeout(GEMINI_TIMEOUT_MS);
 
   let rawText = "";
   try {

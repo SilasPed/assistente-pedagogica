@@ -10,7 +10,7 @@ import {
   TextRun,
   WidthType,
 } from "docx";
-import type { ReportDraft } from "./report.ts";
+import { reportSignatureLine, type ReportDraft } from "./report.ts";
 
 const FONT = "Times New Roman";
 const NONE = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
@@ -85,7 +85,7 @@ export function reportDocument(draft: ReportDraft) {
           ...section("Intervenção individualizada", draft.intervencao),
           ...section("Estratégias pedagógicas diferenciadas", draft.estrategias),
           ...section("Observação geral", draft.geral),
-          paragraph(`${draft.place || "Local"} , ${draft.dateLabel}.`, { before: 400, after: 360 }),
+          paragraph(reportSignatureLine(draft.place, draft.dateLabel), { before: 400, after: 360 }),
           paragraph("________________________________", { center: true, after: 40 }),
           paragraph(draft.teacher || "Professor(a)", { center: true, after: 0 }),
         ],

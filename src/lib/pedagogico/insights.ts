@@ -74,7 +74,8 @@ export function summarizeStudent(input: {
   const facts: string[] = [];
   if (avg != null) {
     let sentence = `média ${fmtScore(avg)}`;
-    if (prevAvg != null) {
+    if (prevAvg == null) sentence += ", sem dados do período anterior";
+    else {
       const delta = avg - prevAvg;
       if (Math.abs(delta) < 0.25) sentence += ", estável em relação ao período anterior";
       else if (delta > 0) sentence += ` — ${fmtScore(delta)} acima do período anterior`;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { dossierForModel, buildFactSheet, maskNames, analysisResponseSchema, organizeResponseSchema, type AssistInput } from "./ai-contract.ts";
-import { GeminiCallError, classifyGeminiFailure, geminiFailureMessage } from "./gemini.server.ts";
+import { GeminiCallError, classifyGeminiFailure, geminiFailureMessage, geminiResponseText, resolveGeminiModel } from "./gemini.server.ts";
 import { assistWith, rateKeyFromHeaders, resetAssistantRateLimit } from "./ai.server.ts";
 
 const period = { label: "3º bimestre", start: "2026-08-03", end: "2026-09-18" };
@@ -37,6 +37,25 @@ const okGenerate = async () =>
     missing: [],
     limits: ["Isto é uma leitura, não um diagnóstico."],
   });
+
+describe("modelo do Gemini", () => {
+  it("troca o alias instável por gemini-2.5-flash", () => {
+    assert.equal(resolveGeminiModel(undefined), "gemini-2.5-flash");
+    assert.equal(resolveGeminiModel("  "), "gemini-2.5-flash");
+    assert.equal(resolveGeminiModel("gemini-flash-latest"), "gemini-2.5-flash");
+    assert.equal(resolveGeminiModel("gemini-2.5-pro"), "gemini-2.5-pro");
+  });
+
+  it("ignora o raciocínio e lê o JSON da resposta", () => {
+    assert.equal(
+      geminiResponseText({
+        text: "",
+        candidates: [{ content: { parts: [{ thought: true, text: "pensando" }, { text: '{"ok":true}' }] } }],
+      }),
+      '{"ok":true}',
+    );
+  });
+});
 
 describe("assistWith", { concurrency: 1 }, () => {
   it("recusa entrada inválida sem chamar o modelo", async () => {

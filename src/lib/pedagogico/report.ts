@@ -4,6 +4,7 @@ import type { Attendance, Grade, Observation } from "./types.ts";
 
 export const SCHOOL_NAME = "ESCOLA CIDADÃ INTEGRAL TÉCNICA ERENICE CAVALCANTE FIDELES";
 export const EMPTY_SECTION = "Não observado no período";
+export const DEFAULT_PLACE = "Bayeux";
 
 export type ReportDraft = {
   school: string;
@@ -34,6 +35,12 @@ const FOCUS = ["concentração", "concentracao", "atenção", "atencao", "concen
 const CAUSE = ["porque", "devido", "motivo", "causa"];
 const INTERVENTION = ["intervenção", "intervencao", "intervir"];
 const STRATEGY = ["estratégia", "estrategia", "adaptação", "adaptacao", "diferenciada"];
+
+export function reportSignatureLine(place: string, dateLabel: string) {
+  const date = dateLabel.trim() || "data";
+  const where = place.trim();
+  return where ? `${where}, ${date}.` : `${date}.`;
+}
 
 function hasWord(text: string, needles: string[]) {
   const padded = ` ${text.toLocaleLowerCase("pt-BR")} `;

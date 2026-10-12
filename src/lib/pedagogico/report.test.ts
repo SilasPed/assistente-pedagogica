@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Packer } from "docx";
-import { buildReportDraft, EMPTY_SECTION, SCHOOL_NAME } from "./report.ts";
+import { buildReportDraft, EMPTY_SECTION, reportSignatureLine, SCHOOL_NAME } from "./report.ts";
 import { reportDocument } from "./report-docx.ts";
 import type { Observation } from "./types.ts";
 
@@ -52,6 +52,9 @@ describe("parecer individual", () => {
     }
     assert.match(draft.quantitativo, /Não observado no período/);
     assert.equal(draft.place, "");
+    assert.equal(reportSignatureLine("", draft.dateLabel), `${draft.dateLabel}.`);
+    assert.equal(reportSignatureLine("", draft.dateLabel).includes("Local"), false);
+    assert.equal(reportSignatureLine("Bayeux", draft.dateLabel), `Bayeux, ${draft.dateLabel}.`);
   });
 
   it("separa categoria, dificuldade nomeada e causa explícita", () => {

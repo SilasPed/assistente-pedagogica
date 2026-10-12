@@ -164,6 +164,9 @@ export function RegisterPanel({
   const [score, setScore] = useState(7);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  if (classes.length > 0 && !classes.some((room) => room.id === classId)) {
+    setClassId(classes[0].id);
+  }
 
   const classStudents = students
     .filter((student) => student.classId === classId)
