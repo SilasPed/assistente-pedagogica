@@ -60,7 +60,7 @@ Texto inválido, chave ausente, chave recusada, cota esgotada, tempo esgotado ou
 
 Ações: organizar observação, gerar parecer para revisar, analisar evolução, sugerir intervenções. Fatos de média e frequência são calculados aqui. A leitura do modelo pode, ainda assim, escrever um número que não está nos fatos. Só “Salvar como observação” grava, e grava só o texto editado.
 
-O primeiro modelo é `gemini-2.5-flash`, com raciocínio desligado (`thinkingBudget` 0) e até 8192 tokens de saída. Se esse id responder 404, 400 ou texto vazio, a mesma análise tenta `gemini-flash-latest` com nível de raciocínio baixo. O alias sozinho, com teto de 1200 tokens e 20 segundos, estourava o tempo na organização e devolvia texto vazio no parecer e na evolução, porque o raciocínio padrão consumia a saída. Outro nome em `GEMINI_MODEL` é respeitado, sem essa troca.
+O primeiro pedido usa `gemini-flash-latest`, com até 8192 tokens de saída e 45 segundos. Na publicação de teste, `gemini-2.5-flash` respondeu HTTP 404, então esse id não é mais o padrão. Se o alias vier 503 ou vazio, a mesma análise tenta `gemini-3.5-flash-lite`, `gemini-3.6-flash` e `gemini-3.8-flash`. O alias com teto de 1200 tokens e 20 segundos estourava o tempo na organização e devolvia texto vazio no parecer e na evolução, porque o raciocínio padrão consumia a saída. Outro nome em `GEMINI_MODEL`, que não seja esses dois, é respeitado.
 
 ## Configuração
 
@@ -70,7 +70,7 @@ Gemini, só no servidor (sem prefixo `VITE_`):
 
 ```
 GEMINI_API_KEY=sua-chave
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-flash-latest
 ```
 
 `GEMINI_MODEL` é opcional. Na Vercel, em Project Settings → Environment Variables, crie `GEMINI_API_KEY` e, se quiser, `GEMINI_MODEL`, e publique de novo.

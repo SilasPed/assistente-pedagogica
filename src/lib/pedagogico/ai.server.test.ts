@@ -40,14 +40,15 @@ const okGenerate = async () =>
   });
 
 describe("modelo do Gemini", () => {
-  it("tenta o flash estável e, se ele falhar, o alias que já respondeu", () => {
-    assert.equal(resolveGeminiModel(undefined), "gemini-2.5-flash");
-    assert.equal(resolveGeminiModel("gemini-flash-latest"), "gemini-2.5-flash");
-    assert.deepEqual(geminiAttemptPlan(undefined), [
-      { model: "gemini-2.5-flash", thinking: "budget0" },
-      { model: "gemini-flash-latest", thinking: "low" },
-    ]);
-    assert.deepEqual(geminiAttemptPlan("gemini-flash-latest"), geminiAttemptPlan(undefined));
+  it("não usa o flash 2.5 que a publicação recusou e tenta ids atuais", () => {
+    assert.equal(resolveGeminiModel(undefined), "gemini-flash-latest");
+    assert.equal(resolveGeminiModel("gemini-2.5-flash"), "gemini-flash-latest");
+    assert.equal(resolveGeminiModel("gemini-flash-latest"), "gemini-flash-latest");
+    assert.deepEqual(
+      geminiAttemptPlan(undefined).map((attempt) => attempt.model),
+      ["gemini-flash-latest", "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash"],
+    );
+    assert.deepEqual(geminiAttemptPlan("gemini-2.5-flash"), geminiAttemptPlan(undefined));
     assert.deepEqual(geminiAttemptPlan("gemini-2.5-pro"), [{ model: "gemini-2.5-pro", thinking: "none" }]);
     assert.deepEqual(geminiThinkingConfig("budget0"), { thinkingConfig: { thinkingBudget: 0 } });
     assert.deepEqual(geminiThinkingConfig("low"), { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } });
@@ -65,19 +66,17 @@ describe("modelo do Gemini", () => {
     assert.equal(geminiFailureShouldFallback(aborted), false);
   });
 
-  it("passa ao alias quando o modelo estável responde 404", async () => {
+  it("passa ao modelo seguinte quando o alias responde 503", async () => {
     const seen: string[] = [];
-    const text = await firstGeminiText(geminiAttemptPlan("gemini-2.5-flash"), async (attempt, relax) => {
-      seen.push(`${attempt.model}:${relax}`);
-      if (attempt.model === "gemini-2.5-flash") {
-        const missing = new Error("missing");
-        Object.assign(missing, { status: 404 });
-        throw missing;
+    const text = await firstGeminiText(geminiAttemptPlan("gemini-flash-latest"), async (attempt) => {
+      seen.push(attempt.model);
+      if (attempt.model === "gemini-flash-latest") {
+        throw Object.assign(new Error("unavailable"), { status: 503 });
       }
       return '{"ok":true}';
     });
     assert.equal(text, '{"ok":true}');
-    assert.deepEqual(seen, ["gemini-2.5-flash:false", "gemini-2.5-flash:true", "gemini-flash-latest:false"]);
+    assert.deepEqual(seen, ["gemini-flash-latest", "gemini-3.5-flash-lite"]);
   });
 
   it("repete sem raciocínio mesmo quando a recusa não é HTTP 400", async () => {

@@ -22,19 +22,20 @@ export class GeminiCallError extends Error {
   }
 }
 
-const STABLE_MODEL = "gemini-2.5-flash";
 const ALIAS_MODEL = "gemini-flash-latest";
 export const GEMINI_TIMEOUT_MS = 45_000;
 
 /** Alias móvel. Em outubro de 2026 aponta para um Flash com raciocínio ligado. */
 const UNSTABLE_ALIASES = new Set(["gemini-flash-latest", "gemini-pro-latest"]);
+/** Confirmado na publicação de teste: este id responde 404. */
+const RETIRED_MODELS = new Set(["gemini-2.5-flash"]);
 
 /** Modelos que responderam 404 nesta instância. Não é persistente. */
 const rejectedModels = new Set<string>();
 
 export function resolveGeminiModel(configured: string | undefined) {
   const name = configured?.trim();
-  if (!name || UNSTABLE_ALIASES.has(name)) return STABLE_MODEL;
+  if (!name || UNSTABLE_ALIASES.has(name) || RETIRED_MODELS.has(name)) return ALIAS_MODEL;
   return name;
 }
 
@@ -50,18 +51,20 @@ function thinkingFor(model: string): GeminiThinking {
 }
 
 /**
- * `gemini-2.5-flash` desliga o raciocínio com thinkingBudget 0.
- * Se a publicação recusar esse id (foi o caso do teste de 1 s), o alias que já
- * completou uma análise entra em seguida, com nível baixo e folga de tokens.
+ * A publicação de teste recusou gemini-2.5-flash com HTTP 404.
+ * gemini-flash-latest existe e já completou uma análise; se vier 503, tenta
+ * Flash concretos atuais, sem orçamento de raciocínio do 2.5.
  */
 export function geminiAttemptPlan(configured: string | undefined): GeminiAttempt[] {
   const raw = configured?.trim() ?? "";
   const preferred = resolveGeminiModel(configured);
-  const useStableChain = !raw || raw === STABLE_MODEL || UNSTABLE_ALIASES.has(raw) || preferred === STABLE_MODEL;
-  if (!useStableChain) return [{ model: preferred, thinking: thinkingFor(preferred) }];
+  const useChain = !raw || RETIRED_MODELS.has(raw) || UNSTABLE_ALIASES.has(raw) || preferred === ALIAS_MODEL;
+  if (!useChain) return [{ model: preferred, thinking: thinkingFor(preferred) }];
   return [
-    { model: STABLE_MODEL, thinking: "budget0" },
-    { model: ALIAS_MODEL, thinking: "low" },
+    { model: ALIAS_MODEL, thinking: "none" },
+    { model: "gemini-3.5-flash-lite", thinking: "none" },
+    { model: "gemini-3.6-flash", thinking: "none" },
+    { model: "gemini-3.8-flash", thinking: "none" },
   ];
 }
 
@@ -208,6 +211,29 @@ export async function generateGeminiJson(args: {
         return text;
       } catch (error) {
         if (statusOf(error) === 404) rejectedModels.add(attempt.model);
+        if ((statusOf(error) === 503 || statusOf(error) === 500) && !relaxThinking) {
+          try {
+            const response = await ai.models.generateContent({
+              model: attempt.model,
+              contents: args.user,
+              config: {
+                systemInstruction: args.system,
+                temperature: 0.2,
+                maxOutputTokens: 8192,
+                responseMimeType: "application/json",
+                responseJsonSchema: args.schema,
+                abortSignal: args.signal,
+                ...geminiThinkingConfig(relaxThinking ? "none" : attempt.thinking),
+              },
+            });
+            const text = geminiResponseText(response);
+            if (!text) throw new GeminiCallError("unavailable");
+            return text;
+          } catch (retryError) {
+            if (statusOf(retryError) === 404) rejectedModels.add(attempt.model);
+            throw retryError;
+          }
+        }
         throw error;
       }
     });
