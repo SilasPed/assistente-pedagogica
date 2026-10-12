@@ -1,5 +1,6 @@
-import { BookOpen, ClipboardList, House } from "lucide-react";
+import { BookOpen, ClipboardList, House, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AssistantView } from "@/components/pedagogico/assistant-view";
 import { ClassesView } from "@/components/pedagogico/classes-view";
 import { ConsultView } from "@/components/pedagogico/consult-view";
 import { HomeView } from "@/components/pedagogico/home-view";
@@ -7,11 +8,12 @@ import { formatLong, isoDate } from "@/lib/pedagogico/dates";
 import { usePedStore } from "@/lib/pedagogico/store";
 import { cn } from "@/lib/utils";
 
-type View = "inicio" | "consultar" | "turmas";
+type View = "inicio" | "consultar" | "assistente" | "turmas";
 
 const NAV: { id: View; label: string; icon: typeof House }[] = [
   { id: "inicio", label: "Início", icon: House },
   { id: "consultar", label: "Consultar", icon: ClipboardList },
+  { id: "assistente", label: "Assistente", icon: Sparkles },
   { id: "turmas", label: "Turmas", icon: BookOpen },
 ];
 
@@ -83,7 +85,7 @@ function ReadyApp() {
         <p className="mt-2 max-w-xl text-sm text-muted">
           Exemplo pronto para usar. Observações, notas e frequência ficam neste aparelho.
         </p>
-        <nav className="dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0" aria-label="Seções">
+        <nav className="dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0" aria-label="Seções">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = view === item.id;
@@ -94,7 +96,7 @@ function ReadyApp() {
                 aria-current={active ? "page" : undefined}
                 onClick={() => setView(item.id)}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 py-2 text-xs font-medium md:flex-row md:rounded-full md:px-4",
+                  "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium leading-tight md:flex-row md:rounded-full md:px-4 md:text-xs",
                   active ? "text-primary md:bg-primary md:text-primary-fg" : "text-muted",
                 )}
               >
@@ -125,6 +127,7 @@ function ReadyApp() {
             onStudentId={setStudentId}
           />
         ) : null}
+        {view === "assistente" ? <AssistantView today={today} /> : null}
         {view === "turmas" ? (
           <ClassesView
             today={today}

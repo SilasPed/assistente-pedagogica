@@ -1,46 +1,6 @@
-import { i as __toESM, r as __require, t as __commonJSMin } from "../../_runtime.mjs";
+import { i as __require, o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { i as parseHref, r as normalizeProtocolRelative } from "../tanstack__history.mjs";
 import { PassThrough, Readable } from "node:stream";
-//#region node_modules/react/cjs/react-jsx-runtime.production.js
-/**
-* @license React
-* react-jsx-runtime.production.js
-*
-* Copyright (c) Meta Platforms, Inc. and affiliates.
-*
-* This source code is licensed under the MIT license found in the
-* LICENSE file in the root directory of this source tree.
-*/
-var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((exports) => {
-	var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element");
-	var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
-	function jsxProd(type, config, maybeKey) {
-		var key = null;
-		void 0 !== maybeKey && (key = "" + maybeKey);
-		void 0 !== config.key && (key = "" + config.key);
-		if ("key" in config) {
-			maybeKey = {};
-			for (var propName in config) "key" !== propName && (maybeKey[propName] = config[propName]);
-		} else maybeKey = config;
-		config = maybeKey.ref;
-		return {
-			$$typeof: REACT_ELEMENT_TYPE,
-			type,
-			key,
-			ref: void 0 !== config ? config : null,
-			props: maybeKey
-		};
-	}
-	exports.Fragment = REACT_FRAGMENT_TYPE;
-	exports.jsx = jsxProd;
-	exports.jsxs = jsxProd;
-}));
-//#endregion
-//#region node_modules/react/jsx-runtime.js
-var require_jsx_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	module.exports = require_react_jsx_runtime_production();
-}));
-//#endregion
 //#region node_modules/react/cjs/react.production.js
 /**
 * @license React
@@ -433,173 +393,6 @@ var require_react = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_production();
 }));
 //#endregion
-//#region node_modules/react-dom/cjs/react-dom.production.js
-/**
-* @license React
-* react-dom.production.js
-*
-* Copyright (c) Meta Platforms, Inc. and affiliates.
-*
-* This source code is licensed under the MIT license found in the
-* LICENSE file in the root directory of this source tree.
-*/
-var require_react_dom_production = /* @__PURE__ */ __commonJSMin(((exports) => {
-	var React = require_react();
-	function formatProdErrorMessage(code) {
-		var url = "https://react.dev/errors/" + code;
-		if (1 < arguments.length) {
-			url += "?args[]=" + encodeURIComponent(arguments[1]);
-			for (var i = 2; i < arguments.length; i++) url += "&args[]=" + encodeURIComponent(arguments[i]);
-		}
-		return "Minified React error #" + code + "; visit " + url + " for the full message or use the non-minified dev environment for full errors and additional helpful warnings.";
-	}
-	function noop() {}
-	var Internals = {
-		d: {
-			f: noop,
-			r: function() {
-				throw Error(formatProdErrorMessage(522));
-			},
-			D: noop,
-			C: noop,
-			L: noop,
-			m: noop,
-			X: noop,
-			S: noop,
-			M: noop
-		},
-		p: 0,
-		findDOMNode: null
-	};
-	var REACT_PORTAL_TYPE = Symbol.for("react.portal");
-	var REACT_RECOVERABLE_TYPE = Symbol.for("react.recoverable");
-	var REACT_OPTIMISTIC_KEY = Symbol.for("react.optimistic_key");
-	function createPortal$1(children, containerInfo, implementation) {
-		var key = 3 < arguments.length && void 0 !== arguments[3] ? arguments[3] : null;
-		return {
-			$$typeof: REACT_PORTAL_TYPE,
-			key: null == key ? null : key === REACT_OPTIMISTIC_KEY ? REACT_OPTIMISTIC_KEY : "" + key,
-			children,
-			containerInfo,
-			implementation
-		};
-	}
-	var ReactSharedInternals = React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
-	function getCrossOriginStringAs(as, input) {
-		if ("font" === as) return "";
-		if ("string" === typeof input) return "use-credentials" === input ? input : "";
-	}
-	exports.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = Internals;
-	exports.browser = function(reason) {
-		return {
-			$$typeof: REACT_RECOVERABLE_TYPE,
-			_reason: reason
-		};
-	};
-	exports.createPortal = function(children, container) {
-		var key = 2 < arguments.length && void 0 !== arguments[2] ? arguments[2] : null;
-		if (!container || 1 !== container.nodeType && 9 !== container.nodeType && 11 !== container.nodeType) throw Error(formatProdErrorMessage(299));
-		return createPortal$1(children, container, null, key);
-	};
-	exports.flushSync = function(fn) {
-		var previousTransition = ReactSharedInternals.T, previousUpdatePriority = Internals.p;
-		try {
-			if (ReactSharedInternals.T = null, Internals.p = 2, fn) return fn();
-		} finally {
-			ReactSharedInternals.T = previousTransition, Internals.p = previousUpdatePriority, Internals.d.f();
-		}
-	};
-	exports.preconnect = function(href, options) {
-		"string" === typeof href && (options ? (options = options.crossOrigin, options = "string" === typeof options ? "use-credentials" === options ? options : "" : void 0) : options = null, Internals.d.C(href, options));
-	};
-	exports.prefetchDNS = function(href) {
-		"string" === typeof href && Internals.d.D(href);
-	};
-	exports.preinit = function(href, options) {
-		if ("string" === typeof href && options && "string" === typeof options.as) {
-			var as = options.as, crossOrigin = getCrossOriginStringAs(as, options.crossOrigin), integrity = "string" === typeof options.integrity ? options.integrity : void 0, fetchPriority = "string" === typeof options.fetchPriority ? options.fetchPriority : void 0;
-			"style" === as ? Internals.d.S(href, "string" === typeof options.precedence ? options.precedence : void 0, {
-				crossOrigin,
-				integrity,
-				fetchPriority
-			}) : "script" === as && Internals.d.X(href, {
-				crossOrigin,
-				integrity,
-				fetchPriority,
-				nonce: "string" === typeof options.nonce ? options.nonce : void 0
-			});
-		}
-	};
-	exports.preinitModule = function(href, options) {
-		if ("string" === typeof href) if ("object" === typeof options && null !== options) {
-			if (null == options.as || "script" === options.as) {
-				var crossOrigin = getCrossOriginStringAs(options.as, options.crossOrigin);
-				Internals.d.M(href, {
-					crossOrigin,
-					integrity: "string" === typeof options.integrity ? options.integrity : void 0,
-					nonce: "string" === typeof options.nonce ? options.nonce : void 0,
-					fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0
-				});
-			}
-		} else options ?? Internals.d.M(href);
-	};
-	exports.preload = function(href, options) {
-		if ("string" === typeof href && "object" === typeof options && null !== options && "string" === typeof options.as) {
-			var as = options.as, crossOrigin = getCrossOriginStringAs(as, options.crossOrigin);
-			Internals.d.L(href, as, {
-				crossOrigin,
-				integrity: "string" === typeof options.integrity ? options.integrity : void 0,
-				nonce: "string" === typeof options.nonce ? options.nonce : void 0,
-				type: "string" === typeof options.type ? options.type : void 0,
-				fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0,
-				referrerPolicy: "string" === typeof options.referrerPolicy ? options.referrerPolicy : void 0,
-				imageSrcSet: "string" === typeof options.imageSrcSet ? options.imageSrcSet : void 0,
-				imageSizes: "string" === typeof options.imageSizes ? options.imageSizes : void 0,
-				media: "string" === typeof options.media ? options.media : void 0
-			});
-		}
-	};
-	exports.preloadModule = function(href, options) {
-		if ("string" === typeof href) if (options) {
-			var crossOrigin = getCrossOriginStringAs(options.as, options.crossOrigin);
-			Internals.d.m(href, {
-				as: "string" === typeof options.as && "script" !== options.as ? options.as : void 0,
-				crossOrigin,
-				integrity: "string" === typeof options.integrity ? options.integrity : void 0,
-				nonce: "string" === typeof options.nonce ? options.nonce : void 0,
-				fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0
-			});
-		} else Internals.d.m(href);
-	};
-	exports.requestFormReset = function(form) {
-		Internals.d.r(form);
-	};
-	exports.unstable_batchedUpdates = function(fn, a) {
-		return fn(a);
-	};
-	exports.useFormState = function(action, initialState, permalink) {
-		return ReactSharedInternals.H.useFormState(action, initialState, permalink);
-	};
-	exports.useFormStatus = function() {
-		return ReactSharedInternals.H.useHostTransitionStatus();
-	};
-	exports.version = "19.3.0";
-}));
-//#endregion
-//#region node_modules/react-dom/index.js
-var require_react_dom = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	function checkDCE() {
-		if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined" || typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE !== "function") return;
-		try {
-			__REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(checkDCE);
-		} catch (err) {
-			console.error(err);
-		}
-	}
-	checkDCE();
-	module.exports = require_react_dom_production();
-}));
-//#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/not-found.js
 /** Determine if a value is a TanStack Router not-found error. */
 function isNotFound(obj) {
@@ -643,6 +436,10 @@ function redirect(opts) {
 /** Check whether a value is a TanStack Router redirect Response. */
 function isRedirect(obj) {
 	return obj instanceof Response && !!obj.options;
+}
+/** Parse a serialized redirect object back into a redirect Response. */
+function parseRedirect(obj) {
+	if (obj !== null && typeof obj === "object" && obj.isSerializedRedirect) return redirect(obj);
 }
 //#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/ssr-match-id.js
@@ -4118,7 +3915,6 @@ var BaseRootRoute = class extends BaseRoute {
 };
 //#endregion
 //#region node_modules/seroval/dist/index.js
-var import_jsx_runtime = require_jsx_runtime();
 var SYM_ASYNC_ITERATOR = Symbol.asyncIterator;
 var SYM_HAS_INSTANCE = Symbol.hasInstance;
 var SYM_IS_CONCAT_SPREADABLE = Symbol.isConcatSpreadable;
@@ -4831,7 +4627,7 @@ var SPECIAL_REF_STRING = {
 * design, is not treated as a genuine Stream on re-serialization. Keep the two
 * implementations in sync.
 */
-var Stream = class {
+var Stream$1 = class {
 	constructor() {
 		this.buffer = [];
 		this.listeners = [];
@@ -4896,10 +4692,10 @@ var Stream = class {
 	}
 };
 function isStream(value) {
-	return value instanceof Stream;
+	return value instanceof Stream$1;
 }
 function createStream() {
-	return new Stream();
+	return new Stream$1();
 }
 function createStreamFromAsyncIterable(iterable, cleanups) {
 	const stream = createStream();
@@ -6881,7 +6677,48 @@ function fromJSON(source, options = {}) {
 	}), source.t);
 }
 //#endregion
+//#region node_modules/react/cjs/react-jsx-runtime.production.js
+/**
+* @license React
+* react-jsx-runtime.production.js
+*
+* Copyright (c) Meta Platforms, Inc. and affiliates.
+*
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/
+var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((exports) => {
+	var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element");
+	var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+	function jsxProd(type, config, maybeKey) {
+		var key = null;
+		void 0 !== maybeKey && (key = "" + maybeKey);
+		void 0 !== config.key && (key = "" + config.key);
+		if ("key" in config) {
+			maybeKey = {};
+			for (var propName in config) "key" !== propName && (maybeKey[propName] = config[propName]);
+		} else maybeKey = config;
+		config = maybeKey.ref;
+		return {
+			$$typeof: REACT_ELEMENT_TYPE,
+			type,
+			key,
+			ref: void 0 !== config ? config : null,
+			props: maybeKey
+		};
+	}
+	exports.Fragment = REACT_FRAGMENT_TYPE;
+	exports.jsx = jsxProd;
+	exports.jsxs = jsxProd;
+}));
+//#endregion
+//#region node_modules/react/jsx-runtime.js
+var require_jsx_runtime = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	module.exports = require_react_jsx_runtime_production();
+}));
+//#endregion
 //#region node_modules/@tanstack/react-router/dist/esm/CatchBoundary.js
+var import_jsx_runtime = require_jsx_runtime();
 var CatchBoundary = class extends import_react.Component {
 	constructor(..._args) {
 		super(..._args);
@@ -9435,6 +9272,173 @@ function makeMergeStream(serverSsr, reader, hydrationOutput, opts) {
 	disarmLifecycle = armStreamLifecycle(serverSsr, opts, () => terminal, terminate);
 	return stream;
 }
+//#endregion
+//#region node_modules/react-dom/cjs/react-dom.production.js
+/**
+* @license React
+* react-dom.production.js
+*
+* Copyright (c) Meta Platforms, Inc. and affiliates.
+*
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/
+var require_react_dom_production = /* @__PURE__ */ __commonJSMin(((exports) => {
+	var React = require_react();
+	function formatProdErrorMessage(code) {
+		var url = "https://react.dev/errors/" + code;
+		if (1 < arguments.length) {
+			url += "?args[]=" + encodeURIComponent(arguments[1]);
+			for (var i = 2; i < arguments.length; i++) url += "&args[]=" + encodeURIComponent(arguments[i]);
+		}
+		return "Minified React error #" + code + "; visit " + url + " for the full message or use the non-minified dev environment for full errors and additional helpful warnings.";
+	}
+	function noop() {}
+	var Internals = {
+		d: {
+			f: noop,
+			r: function() {
+				throw Error(formatProdErrorMessage(522));
+			},
+			D: noop,
+			C: noop,
+			L: noop,
+			m: noop,
+			X: noop,
+			S: noop,
+			M: noop
+		},
+		p: 0,
+		findDOMNode: null
+	};
+	var REACT_PORTAL_TYPE = Symbol.for("react.portal");
+	var REACT_RECOVERABLE_TYPE = Symbol.for("react.recoverable");
+	var REACT_OPTIMISTIC_KEY = Symbol.for("react.optimistic_key");
+	function createPortal$1(children, containerInfo, implementation) {
+		var key = 3 < arguments.length && void 0 !== arguments[3] ? arguments[3] : null;
+		return {
+			$$typeof: REACT_PORTAL_TYPE,
+			key: null == key ? null : key === REACT_OPTIMISTIC_KEY ? REACT_OPTIMISTIC_KEY : "" + key,
+			children,
+			containerInfo,
+			implementation
+		};
+	}
+	var ReactSharedInternals = React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+	function getCrossOriginStringAs(as, input) {
+		if ("font" === as) return "";
+		if ("string" === typeof input) return "use-credentials" === input ? input : "";
+	}
+	exports.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = Internals;
+	exports.browser = function(reason) {
+		return {
+			$$typeof: REACT_RECOVERABLE_TYPE,
+			_reason: reason
+		};
+	};
+	exports.createPortal = function(children, container) {
+		var key = 2 < arguments.length && void 0 !== arguments[2] ? arguments[2] : null;
+		if (!container || 1 !== container.nodeType && 9 !== container.nodeType && 11 !== container.nodeType) throw Error(formatProdErrorMessage(299));
+		return createPortal$1(children, container, null, key);
+	};
+	exports.flushSync = function(fn) {
+		var previousTransition = ReactSharedInternals.T, previousUpdatePriority = Internals.p;
+		try {
+			if (ReactSharedInternals.T = null, Internals.p = 2, fn) return fn();
+		} finally {
+			ReactSharedInternals.T = previousTransition, Internals.p = previousUpdatePriority, Internals.d.f();
+		}
+	};
+	exports.preconnect = function(href, options) {
+		"string" === typeof href && (options ? (options = options.crossOrigin, options = "string" === typeof options ? "use-credentials" === options ? options : "" : void 0) : options = null, Internals.d.C(href, options));
+	};
+	exports.prefetchDNS = function(href) {
+		"string" === typeof href && Internals.d.D(href);
+	};
+	exports.preinit = function(href, options) {
+		if ("string" === typeof href && options && "string" === typeof options.as) {
+			var as = options.as, crossOrigin = getCrossOriginStringAs(as, options.crossOrigin), integrity = "string" === typeof options.integrity ? options.integrity : void 0, fetchPriority = "string" === typeof options.fetchPriority ? options.fetchPriority : void 0;
+			"style" === as ? Internals.d.S(href, "string" === typeof options.precedence ? options.precedence : void 0, {
+				crossOrigin,
+				integrity,
+				fetchPriority
+			}) : "script" === as && Internals.d.X(href, {
+				crossOrigin,
+				integrity,
+				fetchPriority,
+				nonce: "string" === typeof options.nonce ? options.nonce : void 0
+			});
+		}
+	};
+	exports.preinitModule = function(href, options) {
+		if ("string" === typeof href) if ("object" === typeof options && null !== options) {
+			if (null == options.as || "script" === options.as) {
+				var crossOrigin = getCrossOriginStringAs(options.as, options.crossOrigin);
+				Internals.d.M(href, {
+					crossOrigin,
+					integrity: "string" === typeof options.integrity ? options.integrity : void 0,
+					nonce: "string" === typeof options.nonce ? options.nonce : void 0,
+					fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0
+				});
+			}
+		} else options ?? Internals.d.M(href);
+	};
+	exports.preload = function(href, options) {
+		if ("string" === typeof href && "object" === typeof options && null !== options && "string" === typeof options.as) {
+			var as = options.as, crossOrigin = getCrossOriginStringAs(as, options.crossOrigin);
+			Internals.d.L(href, as, {
+				crossOrigin,
+				integrity: "string" === typeof options.integrity ? options.integrity : void 0,
+				nonce: "string" === typeof options.nonce ? options.nonce : void 0,
+				type: "string" === typeof options.type ? options.type : void 0,
+				fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0,
+				referrerPolicy: "string" === typeof options.referrerPolicy ? options.referrerPolicy : void 0,
+				imageSrcSet: "string" === typeof options.imageSrcSet ? options.imageSrcSet : void 0,
+				imageSizes: "string" === typeof options.imageSizes ? options.imageSizes : void 0,
+				media: "string" === typeof options.media ? options.media : void 0
+			});
+		}
+	};
+	exports.preloadModule = function(href, options) {
+		if ("string" === typeof href) if (options) {
+			var crossOrigin = getCrossOriginStringAs(options.as, options.crossOrigin);
+			Internals.d.m(href, {
+				as: "string" === typeof options.as && "script" !== options.as ? options.as : void 0,
+				crossOrigin,
+				integrity: "string" === typeof options.integrity ? options.integrity : void 0,
+				nonce: "string" === typeof options.nonce ? options.nonce : void 0,
+				fetchPriority: "string" === typeof options.fetchPriority ? options.fetchPriority : void 0
+			});
+		} else Internals.d.m(href);
+	};
+	exports.requestFormReset = function(form) {
+		Internals.d.r(form);
+	};
+	exports.unstable_batchedUpdates = function(fn, a) {
+		return fn(a);
+	};
+	exports.useFormState = function(action, initialState, permalink) {
+		return ReactSharedInternals.H.useFormState(action, initialState, permalink);
+	};
+	exports.useFormStatus = function() {
+		return ReactSharedInternals.H.useHostTransitionStatus();
+	};
+	exports.version = "19.3.0";
+}));
+//#endregion
+//#region node_modules/react-dom/index.js
+var require_react_dom = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	function checkDCE() {
+		if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined" || typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE !== "function") return;
+		try {
+			__REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(checkDCE);
+		} catch (err) {
+			console.error(err);
+		}
+	}
+	checkDCE();
+	module.exports = require_react_dom_production();
+}));
 //#endregion
 //#region node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js
 /**
@@ -18238,4 +18242,4 @@ var renderRouterToStream = async ({ request, router, responseHeaders, children }
 	}
 };
 //#endregion
-export { getStylesheetHref as A, isPromise as B, fromJSON as C, createInlineCssPlaceholderAsset as D, toCrossJSONStream as E, executeRewriteInput as F, require_react as G, isRedirect as H, invariant as I, require_jsx_runtime as K, createSieveCache as L, resolveManifestCssLink as M, waitForReason as N, createInlineCssStyleAsset as O, _getRenderedMatches as P, decodePath as R, crossSerializeStream as S, toCrossJSONAsync as T, rootRouteId as U, dehydrateSsrMatchId as V, isNotFound as W, createFileRoute as _, isSsrResponse as a, createPlugin as b, stripSsrResponseBody as c, Scripts as d, HeadContent as f, lazyRouteComponent as g, Outlet as h, disposeSsrResponse as i, resolveManifestAssetLink as j, getScriptPreloadAttrs as k, createHydrationScripts as l, createRouter as m, bindSsrResponseToRequest as n, normalizeSsrResponse as o, RouterProvider as p, defineHandlerCallback as r, replaceSsrResponse as s, renderRouterToStream as t, GLOBAL_TSR as u, createRootRoute as v, isStream as w, createStream as x, useRouter as y, isDangerousProtocol as z };
+export { getScriptPreloadAttrs as A, isDangerousProtocol as B, crossSerializeStream as C, toCrossJSONStream as D, toCrossJSONAsync as E, _getRenderedMatches as F, rootRouteId as G, dehydrateSsrMatchId as H, executeRewriteInput as I, isNotFound as K, invariant as L, resolveManifestAssetLink as M, resolveManifestCssLink as N, createInlineCssPlaceholderAsset as O, waitForReason as P, createSieveCache as R, createStream as S, isStream as T, isRedirect as U, isPromise as V, parseRedirect as W, createFileRoute as _, isSsrResponse as a, require_jsx_runtime as b, stripSsrResponseBody as c, Scripts as d, HeadContent as f, lazyRouteComponent as g, Outlet as h, disposeSsrResponse as i, getStylesheetHref as j, createInlineCssStyleAsset as k, createHydrationScripts as l, createRouter as m, bindSsrResponseToRequest as n, normalizeSsrResponse as o, RouterProvider as p, require_react as q, defineHandlerCallback as r, replaceSsrResponse as s, renderRouterToStream as t, GLOBAL_TSR as u, createRootRoute as v, fromJSON as w, createPlugin as x, useRouter as y, decodePath as z };

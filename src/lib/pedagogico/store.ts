@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { normalizePedData } from "@/lib/pedagogico/origins";
 import { createSeed } from "@/lib/pedagogico/seed";
 import type {
   Attendance,
@@ -8,17 +9,18 @@ import type {
   Observation,
   PedData,
   PendingItem,
+  RecordOrigin,
 } from "@/lib/pedagogico/types";
 
 type Store = PedData & {
-  addObservation: (input: Omit<Observation, "id" | "createdAt">) => void;
+  addObservation: (input: Omit<Observation, "id" | "createdAt" | "origin">) => void;
   removeObservation: (id: string) => void;
-  addGrade: (input: Omit<Grade, "id">) => void;
+  addGrade: (input: Omit<Grade, "id" | "origin">) => void;
   removeGrade: (id: string) => void;
-  upsertAttendance: (input: Omit<Attendance, "id">) => void;
+  upsertAttendance: (input: Omit<Attendance, "id" | "origin">) => void;
   togglePending: (id: string) => void;
-  addPending: (input: Omit<PendingItem, "id" | "done">) => void;
-  addExam: (input: Omit<Exam, "id">) => void;
+  addPending: (input: Omit<PendingItem, "id" | "done" | "origin">) => void;
+  addExam: (input: Omit<Exam, "id" | "origin">) => void;
   removeExam: (id: string) => void;
   addStudent: (classId: string, name: string) => void;
   resetDemo: () => void;
@@ -28,6 +30,10 @@ function id() {
   return crypto.randomUUID();
 }
 
+function originForStudent(state: PedData, studentId: string): RecordOrigin {
+  return state.students.find((student) => student.id === studentId)?.origin ?? "local";
+}
+
 export const usePedStore = create<Store>()(
   persist(
     (set) => ({
@@ -35,7 +41,12 @@ export const usePedStore = create<Store>()(
       addObservation: (input) =>
         set((state) => ({
           observations: [
-            { ...input, id: id(), createdAt: new Date().toISOString() },
+            {
+              ...input,
+              origin: originForStudent(state, input.studentId),
+              id: id(),
+              createdAt: new Date().toISOString(),
+            },
             ...state.observations,
           ],
         })),
@@ -45,7 +56,7 @@ export const usePedStore = create<Store>()(
         })),
       addGrade: (input) =>
         set((state) => ({
-          grades: [{ ...input, id: id() }, ...state.grades],
+          grades: [{ ...input, origin: originForStudent(state, input.studentId), id: id() }, ...state.grades],
         })),
       removeGrade: (gradeId) =>
         set((state) => ({
@@ -56,11 +67,12 @@ export const usePedStore = create<Store>()(
           const index = state.attendance.findIndex(
             (item) => item.studentId === input.studentId && item.date === input.date,
           );
+          const origin = originForStudent(state, input.studentId);
           if (index === -1) {
-            return { attendance: [...state.attendance, { ...input, id: id() }] };
+            return { attendance: [...state.attendance, { ...input, origin, id: id() }] };
           }
           const next = state.attendance.slice();
-          next[index] = { ...next[index], status: input.status };
+          next[index] = { ...next[index], status: input.status, origin };
           return { attendance: next };
         }),
       togglePending: (pendingId) =>
@@ -71,11 +83,28 @@ export const usePedStore = create<Store>()(
         })),
       addPending: (input) =>
         set((state) => ({
-          pendings: [{ ...input, id: id(), done: false }, ...state.pendings],
+          pendings: [
+            {
+              ...input,
+              origin: input.studentId
+                ? originForStudent(state, input.studentId)
+                : (state.classes.find((room) => room.id === input.classId)?.origin ?? "local"),
+              id: id(),
+              done: false,
+            },
+            ...state.pendings,
+          ],
         })),
       addExam: (input) =>
         set((state) => ({
-          exams: [...state.exams, { ...input, id: id() }].sort((a, b) => a.date.localeCompare(b.date)),
+          exams: [
+            ...state.exams,
+            {
+              ...input,
+              origin: state.classes.find((room) => room.id === input.classId)?.origin ?? "local",
+              id: id(),
+            },
+          ].sort((a, b) => a.date.localeCompare(b.date)),
         })),
       removeExam: (examId) =>
         set((state) => ({
@@ -85,7 +114,7 @@ export const usePedStore = create<Store>()(
         const trimmed = name.trim();
         if (!trimmed) return;
         set((state) => ({
-          students: [...state.students, { id: id(), classId, name: trimmed }],
+          students: [...state.students, { id: id(), classId, name: trimmed, origin: "local" }],
         }));
       },
       resetDemo: () => set(createSeed(new Date())),
@@ -101,6 +130,10 @@ export const usePedStore = create<Store>()(
         attendance: state.attendance,
         exams: state.exams,
         pendings: state.pendings,
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...normalizePedData(persisted as Partial<PedData> | null),
       }),
     },
   ),

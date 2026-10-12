@@ -1,3 +1,5 @@
+export type RecordOrigin = "demo" | "local";
+
 export type Category = "participacao" | "comportamento" | "dificuldades" | "evolucao" | "geral";
 
 export type AttendanceStatus = "presente" | "falta" | "atraso" | "justificada";
@@ -8,12 +10,14 @@ export type ClassRoom = {
   id: string;
   name: string;
   subject: string;
+  origin: RecordOrigin;
 };
 
 export type Student = {
   id: string;
   classId: string;
   name: string;
+  origin: RecordOrigin;
 };
 
 export type Observation = {
@@ -25,6 +29,7 @@ export type Observation = {
   text: string;
   source: "voz" | "texto";
   createdAt: string;
+  origin: RecordOrigin;
 };
 
 export type Grade = {
@@ -34,6 +39,7 @@ export type Grade = {
   date: string;
   title: string;
   score: number;
+  origin: RecordOrigin;
 };
 
 export type Attendance = {
@@ -42,6 +48,7 @@ export type Attendance = {
   classId: string;
   date: string;
   status: AttendanceStatus;
+  origin: RecordOrigin;
 };
 
 export type Exam = {
@@ -50,6 +57,7 @@ export type Exam = {
   title: string;
   date: string;
   kind: ExamKind;
+  origin: RecordOrigin;
 };
 
 export type PendingItem = {
@@ -59,6 +67,7 @@ export type PendingItem = {
   title: string;
   due: string;
   done: boolean;
+  origin: RecordOrigin;
 };
 
 export type PedData = {

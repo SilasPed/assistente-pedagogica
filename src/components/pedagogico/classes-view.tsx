@@ -31,7 +31,10 @@ export function ClassesView({
           <Panel key={room.id} className="flex flex-col gap-3">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <Eyebrow>{room.subject}</Eyebrow>
+                <Eyebrow>
+                  {room.subject}
+                  {room.origin === "demo" ? " · demonstração" : " · seus registros"}
+                </Eyebrow>
                 <h2 className="font-serif text-2xl font-medium">{room.name}</h2>
               </div>
               <p className="text-sm text-muted">

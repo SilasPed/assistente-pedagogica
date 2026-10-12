@@ -1,12 +1,14 @@
-import { i as __toESM, n as __exportAll } from "../_runtime.mjs";
-import { G as require_react, K as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
+import { o as __toESM, r as __exportAll } from "../_runtime.mjs";
+import { b as require_jsx_runtime, q as require_react } from "../_libs/@tanstack/react-router+[...].mjs";
+import { i as getServerFnById, n as createServerFn, r as TSS_SERVER_FUNCTION } from "./ssr.mjs";
+import { l as addDays } from "../_libs/date-fns.mjs";
+import { A as relativeDay, D as periodOptions, F as summarizeStudent, N as suggestCategory, O as previousPeriod, P as summarizeClass, S as isoDate, _ as formatDay, b as frequency, d as categoryLabel, f as defaultPeriodKey, g as fmtScore, h as firstName, i as EXAM_KINDS, j as resolvePeriod, k as recentWeekdays, l as attentionForClass, m as examKindLabel, n as ATTENDANCE_OPTIONS, r as CATEGORIES, t as AI_TAG_LABELS, v as formatLong, w as mean, x as inRange, y as formatRange } from "./ai-contract-CXb3E94M.mjs";
 import { t as clsx } from "../_libs/clsx.mjs";
-import { a as House, c as BookOpen, i as Mic, n as Square, o as ClipboardList, r as Plus, s as Check } from "../_libs/lucide-react.mjs";
+import { a as Mic, c as Check, i as Plus, l as BookOpen, n as Square, o as House, r as Sparkles, s as ClipboardList } from "../_libs/lucide-react.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";
-import { a as startOfMonth, c as startOfDay, i as format, l as addDays, n as parseISO, o as endOfMonth, r as subDays, s as differenceInCalendarDays, t as ptBR } from "../_libs/date-fns.mjs";
 import { n as create, t as persist } from "../_libs/zustand.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-C13z7JfQ.js
-var routes_C13z7JfQ_exports = /* @__PURE__ */ __exportAll({ component: () => SplitComponent });
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-CDAOKBno.js
+var routes_CDAOKBno_exports = /* @__PURE__ */ __exportAll({ component: () => SplitComponent });
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function cn(...inputs) {
@@ -35,457 +37,81 @@ function Button({ variant = "primary", className, type = "button", ...props }) {
 		...props
 	});
 }
-function isoDate(date) {
-	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-function parseDay(iso) {
-	return startOfDay(parseISO(iso));
-}
-function bimesterBounds(year, index) {
-	if (index === 1) return {
-		start: new Date(year, 1, 2),
-		end: new Date(year, 3, 17)
+var createSsrRpc = (functionId) => {
+	const url = "/_serverFn/" + functionId;
+	const serverFnMeta = { id: functionId };
+	const fn = async (...args) => {
+		return (await getServerFnById(functionId, { origin: "server" }))(...args);
 	};
-	if (index === 2) return {
-		start: new Date(year, 3, 20),
-		end: new Date(year, 6, 3)
-	};
-	if (index === 3) return {
-		start: new Date(year, 7, 3),
-		end: new Date(year, 8, 18)
-	};
-	return {
-		start: new Date(year, 8, 21),
-		end: new Date(year, 11, 18)
-	};
-}
-function bimesterFor(date) {
-	const year = date.getFullYear();
-	const items = [
-		1,
-		2,
-		3,
-		4
-	].map((index) => ({
-		index,
-		...bimesterBounds(year, index)
-	}));
-	const inside = items.find((item) => date >= item.start && date <= item.end);
-	if (inside) return {
-		year,
-		index: inside.index
-	};
-	const upcoming = items.find((item) => date < item.start);
-	if (upcoming) return {
-		year,
-		index: upcoming.index
-	};
-	if (date < items[0].start) return {
-		year,
-		index: 1
-	};
-	return {
-		year,
-		index: 4
-	};
-}
-function previousBimester(current) {
-	if (current.index === 1) return {
-		year: current.year - 1,
-		index: 4
-	};
-	return {
-		year: current.year,
-		index: current.index - 1
-	};
-}
-function bimesterLabel(index) {
-	return `${index}º bimestre`;
-}
-function formatDay(iso) {
-	return format(parseISO(iso), "d MMM", { locale: ptBR }).replace(".", "");
-}
-function formatLong(iso) {
-	return format(parseISO(iso), "d 'de' MMMM", { locale: ptBR });
-}
-function formatRange(start, end) {
-	return `${formatDay(start)} – ${formatDay(end)}`;
-}
-function relativeDay(iso, today) {
-	const diff = differenceInCalendarDays(parseDay(iso), startOfDay(today));
-	if (diff === 0) return "hoje";
-	if (diff === 1) return "amanhã";
-	if (diff === -1) return "ontem";
-	if (diff > 1 && diff < 21) return `em ${diff} dias`;
-	if (diff < -1 && diff > -21) return `há ${-diff} dias`;
-	return formatDay(iso);
-}
-function recentWeekdays(today, count) {
-	const days = [];
-	let cursor = startOfDay(today);
-	while (days.length < count) {
-		cursor = addDays(cursor, -1);
-		const weekday = cursor.getDay();
-		if (weekday !== 0 && weekday !== 6) days.push(cursor);
-	}
-	return days.reverse();
-}
-function resolvePeriod(key, today) {
-	const year = today.getFullYear();
-	if (key === "month") {
-		const start = startOfMonth(today);
-		const end = endOfMonth(today);
-		return {
-			kind: "month",
-			year,
-			start: isoDate(start),
-			end: isoDate(end),
-			label: "Este mês",
-			phrase: "neste mês"
-		};
-	}
-	if (key === "last30") return {
-		kind: "last30",
-		year,
-		start: isoDate(subDays(startOfDay(today), 29)),
-		end: isoDate(today),
-		label: "Últimos 30 dias",
-		phrase: "nos últimos 30 dias"
-	};
-	const match = /^bim-([1-4])-(\d{4})$/.exec(key);
-	const index = match ? Number(match[1]) : bimesterFor(today).index;
-	const periodYear = match ? Number(match[2]) : year;
-	const bounds = bimesterBounds(periodYear, index);
-	return {
-		kind: "bimester",
-		year: periodYear,
-		index,
-		start: isoDate(bounds.start),
-		end: isoDate(bounds.end),
-		label: bimesterLabel(index),
-		phrase: "neste bimestre"
-	};
-}
-function previousPeriod(period) {
-	if (period.kind === "month") {
-		const start = startOfMonth(subDays(parseDay(period.start), 1));
-		const end = endOfMonth(start);
-		return {
-			kind: "month",
-			year: start.getFullYear(),
-			start: isoDate(start),
-			end: isoDate(end),
-			label: "Mês anterior",
-			phrase: "no mês anterior"
-		};
-	}
-	if (period.kind === "last30") {
-		const end = subDays(parseDay(period.start), 1);
-		const start = subDays(end, 29);
-		return {
-			kind: "last30",
-			year: start.getFullYear(),
-			start: isoDate(start),
-			end: isoDate(end),
-			label: "30 dias anteriores",
-			phrase: "nos 30 dias anteriores"
-		};
-	}
-	const prev = previousBimester({
-		year: period.year,
-		index: period.index ?? 1
+	return Object.assign(fn, {
+		url,
+		serverFnMeta,
+		[TSS_SERVER_FUNCTION]: true
 	});
-	const bounds = bimesterBounds(prev.year, prev.index);
-	return {
-		kind: "bimester",
-		year: prev.year,
-		index: prev.index,
-		start: isoDate(bounds.start),
-		end: isoDate(bounds.end),
-		label: bimesterLabel(prev.index),
-		phrase: "no bimestre anterior"
-	};
-}
-function periodOptions(today) {
-	const year = today.getFullYear();
-	const current = bimesterFor(today);
-	return [
-		...[
-			1,
-			2,
-			3,
-			4
-		].map((index) => ({
-			key: `bim-${index}-${year}`,
-			label: index === current.index ? `${bimesterLabel(index)} (atual)` : bimesterLabel(index)
-		})),
-		{
-			key: "month",
-			label: "Este mês"
-		},
-		{
-			key: "last30",
-			label: "Últimos 30 dias"
-		}
-	];
-}
-function defaultPeriodKey(today) {
-	const current = bimesterFor(today);
-	return `bim-${current.index}-${current.year}`;
-}
-function inRange(date, start, end) {
-	return date >= start && date <= end;
-}
-function fmtScore(value) {
-	return value.toLocaleString("pt-BR", {
-		minimumFractionDigits: 1,
-		maximumFractionDigits: 1
-	});
-}
-function mean(values) {
-	if (!values.length) return null;
-	return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-function firstName(name) {
-	return name.split(" ")[0] ?? name;
-}
-var FEMININE_NAMES = /* @__PURE__ */ new Set([
+};
+var assistantAvailability = createServerFn({ method: "POST" }).handler(createSsrRpc("913178b5974f6a7505593057104a405a54e43ac8c1b9f7d65ea7c2b0042855c6"));
+var runAssistant = createServerFn({ method: "POST" }).validator((input) => input).handler(createSsrRpc("465efbab6ced4d9e382fe76362009d92b4327f7ca239d68e366c11359ae864ad"));
+var DEMO_CLASS_IDS = /* @__PURE__ */ new Set(["7a", "8b"]);
+var DEMO_STUDENT_IDS = /* @__PURE__ */ new Set([
 	"alice",
-	"beatriz",
-	"carmen",
-	"irene",
-	"isabel",
-	"isabelle",
-	"nicole",
-	"ester",
-	"esther"
+	"bruno",
+	"camila",
+	"diego",
+	"elena",
+	"felipe",
+	"helena",
+	"igor",
+	"julia",
+	"kaique",
+	"lara",
+	"miguel"
 ]);
-function possessive(name) {
-	const first = firstName(name).toLocaleLowerCase("pt-BR");
-	if (first.endsWith("a") || FEMININE_NAMES.has(first)) return "da";
-	return "do";
+function asOrigin(value, fallback) {
+	return value === "demo" || value === "local" ? value : fallback;
 }
-function countsLabel(count, singular, plural) {
-	return `${count} ${count === 1 ? singular : plural}`;
+function classOrigin(classId, current) {
+	if (current === "demo" || current === "local") return current;
+	return DEMO_CLASS_IDS.has(classId) ? "demo" : "local";
 }
-var CATEGORIES = [
-	{
-		id: "participacao",
-		label: "Participação"
-	},
-	{
-		id: "comportamento",
-		label: "Comportamento"
-	},
-	{
-		id: "dificuldades",
-		label: "Dificuldades"
-	},
-	{
-		id: "evolucao",
-		label: "Evolução"
-	},
-	{
-		id: "geral",
-		label: "Geral"
-	}
-];
-var ATTENDANCE_OPTIONS = [
-	{
-		id: "presente",
-		short: "P",
-		label: "Presente"
-	},
-	{
-		id: "falta",
-		short: "F",
-		label: "Falta"
-	},
-	{
-		id: "atraso",
-		short: "A",
-		label: "Atraso"
-	},
-	{
-		id: "justificada",
-		short: "J",
-		label: "Justificada"
-	}
-];
-var EXAM_KINDS = [
-	{
-		id: "prova",
-		label: "Prova"
-	},
-	{
-		id: "trabalho",
-		label: "Trabalho"
-	},
-	{
-		id: "recuperacao",
-		label: "Recuperação"
-	}
-];
-function categoryLabel(id) {
-	return CATEGORIES.find((c) => c.id === id)?.label ?? "Geral";
+function studentOrigin(student) {
+	if (student.origin === "demo" || student.origin === "local") return student.origin;
+	return DEMO_STUDENT_IDS.has(student.id) ? "demo" : "local";
 }
-function examKindLabel(id) {
-	return EXAM_KINDS.find((k) => k.id === id)?.label ?? "Prova";
-}
-function presentish(status) {
-	return status === "presente" || status === "atraso";
-}
-function frequency(rows) {
-	if (!rows.length) return null;
-	const present = rows.filter((row) => presentish(row.status)).length;
+function normalizePedData(input) {
+	if (!input?.students?.length && !input?.observations?.length && !input?.classes?.length) return {};
+	const classes = (input.classes ?? []).map((room) => ({
+		...room,
+		origin: classOrigin(room.id, room.origin)
+	}));
+	const students = (input.students ?? []).map((student) => ({
+		...student,
+		origin: studentOrigin(student)
+	}));
+	const originOfStudent = (studentId) => students.find((student) => student.id === studentId)?.origin ?? "local";
 	return {
-		present,
-		total: rows.length,
-		pct: Math.round(present / rows.length * 100)
-	};
-}
-function joinPhrase(parts) {
-	if (parts.length === 0) return "";
-	if (parts.length === 1) return parts[0];
-	return `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
-}
-function latestObservation(rows) {
-	return rows.slice().sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0];
-}
-function summarizeStudent(input) {
-	const { student, period, observations, grades, previousGrades, attendance, nextExam } = input;
-	const avg = mean(grades.map((grade) => grade.score));
-	const prevAvg = mean(previousGrades.map((grade) => grade.score));
-	const freq = frequency(attendance);
-	const delays = attendance.filter((row) => row.status === "atraso").length;
-	const justified = attendance.filter((row) => row.status === "justificada").length;
-	const by = (category) => observations.filter((row) => row.category === category).length;
-	const facts = [];
-	if (avg != null) {
-		let sentence = `média ${fmtScore(avg)}`;
-		if (prevAvg != null) {
-			const delta = avg - prevAvg;
-			if (Math.abs(delta) < .25) sentence += ", estável em relação ao período anterior";
-			else if (delta > 0) sentence += ` — ${fmtScore(delta)} acima do período anterior`;
-			else sentence += ` — ${fmtScore(Math.abs(delta))} abaixo do período anterior`;
-		}
-		facts.push(sentence);
-	}
-	if (freq) facts.push(`frequência de ${freq.pct}% (${freq.present} de ${freq.total})`);
-	let body = facts.length ? `${student.name} está com ${joinPhrase(facts)}.` : `${student.name} ainda não tem nota nem frequência ${period.phrase}.`;
-	if (!observations.length) body += " Não há observação qualitativa neste período.";
-	else {
-		const pieces = [
-			by("evolucao") ? countsLabel(by("evolucao"), "registro de evolução", "registros de evolução") : "",
-			by("dificuldades") ? countsLabel(by("dificuldades"), "registro de dificuldade", "registros de dificuldade") : "",
-			by("participacao") ? countsLabel(by("participacao"), "registro de participação", "registros de participação") : "",
-			by("comportamento") ? countsLabel(by("comportamento"), "registro de comportamento", "registros de comportamento") : "",
-			by("geral") ? countsLabel(by("geral"), "registro geral", "registros gerais") : ""
-		].filter(Boolean);
-		body += ` Entre ${countsLabel(observations.length, "observação", "observações")}`;
-		body += pieces.length ? `, ${joinPhrase(pieces)}.` : ".";
-		const latest = latestObservation(observations);
-		if (latest) body += ` O mais recente (${formatDay(latest.date)}, ${categoryLabel(latest.category).toLowerCase()}): “${latest.text}”`;
-	}
-	const flags = [];
-	if (freq && freq.pct < 75) flags.push("Frequência abaixo de 75%");
-	if (avg != null && avg < 6) flags.push("Média abaixo de 6");
-	if (by("dificuldades") >= 2 && by("evolucao") === 0) flags.push("Dificuldade sem evolução registrada");
-	if (delays >= 3) flags.push(countsLabel(delays, "atraso", "atrasos"));
-	if (justified > 0) flags.push(countsLabel(justified, "falta justificada", "faltas justificadas"));
-	if (flags.length) body += ` Atenção: ${joinPhrase(flags.map((flag) => flag.toLowerCase()))}.`;
-	if (nextExam) body += ` Próxima avaliação da turma: ${nextExam.title}, ${formatDay(nextExam.date)}.`;
-	return {
-		title: `Evolução ${possessive(student.name)} ${firstName(student.name)} ${period.phrase}`,
-		body,
-		stats: [
-			{
-				label: "Média",
-				value: avg == null ? "—" : fmtScore(avg)
-			},
-			{
-				label: "Frequência",
-				value: freq ? `${freq.pct}%` : "—"
-			},
-			{
-				label: "Observações",
-				value: String(observations.length)
-			}
-		],
-		flags
-	};
-}
-function summarizeClass(input) {
-	const { classRoom, students, period, observations, grades, attendance, nextExam } = input;
-	const averages = students.map((student) => mean(grades.filter((grade) => grade.studentId === student.id).map((g) => g.score))).filter((value) => value != null);
-	const freqs = students.map((student) => frequency(attendance.filter((row) => row.studentId === student.id))).filter((value) => value != null);
-	const avg = mean(averages);
-	const freq = freqs.length ? Math.round(freqs.reduce((sum, row) => sum + row.pct, 0) / freqs.length) : null;
-	const watch = attentionForClass({
+		classes,
 		students,
-		observations,
-		grades,
-		attendance
-	}).slice(0, 3);
-	let body = `${classRoom.name} de ${classRoom.subject} reúne ${countsLabel(students.length, "aluno", "alunos")}.`;
-	if (avg != null || freq != null) {
-		const bits = [avg != null ? `média da turma ${fmtScore(avg)}` : "", freq != null ? `frequência média ${freq}%` : ""].filter(Boolean);
-		body += ` ${period.phrase[0].toUpperCase()}${period.phrase.slice(1)}, ${joinPhrase(bits)}.`;
-	} else body += ` Ainda não há nota nem frequência ${period.phrase}.`;
-	body += observations.length ? ` ${countsLabel(observations.length, "observação registrada", "observações registradas")}.` : " Nenhuma observação qualitativa neste período.";
-	if (watch.length) body += ` Pedem olhar mais de perto: ${joinPhrase(watch.map((item) => `${firstName(item.student.name)} (${item.reasons[0].toLowerCase()})`))}.`;
-	else if (students.length) body += " Nenhum aluno isolado em atenção com os critérios atuais.";
-	if (nextExam) body += ` Próxima avaliação: ${nextExam.title}, ${formatDay(nextExam.date)}.`;
-	return {
-		title: `Panorama do ${classRoom.name} ${period.phrase}`,
-		body,
-		stats: [
-			{
-				label: "Média",
-				value: avg == null ? "—" : fmtScore(avg)
-			},
-			{
-				label: "Frequência",
-				value: freq == null ? "—" : `${freq}%`
-			},
-			{
-				label: "Observações",
-				value: String(observations.length)
-			}
-		],
-		flags: watch.map((item) => `${firstName(item.student.name)} · ${item.reasons[0]}`)
+		observations: (input.observations ?? []).map((row) => ({
+			...row,
+			origin: asOrigin(row.origin, originOfStudent(row.studentId))
+		})),
+		grades: (input.grades ?? []).map((row) => ({
+			...row,
+			origin: asOrigin(row.origin, originOfStudent(row.studentId))
+		})),
+		attendance: (input.attendance ?? []).map((row) => ({
+			...row,
+			origin: asOrigin(row.origin, originOfStudent(row.studentId))
+		})),
+		exams: (input.exams ?? []).map((row) => ({
+			...row,
+			origin: asOrigin(row.origin, classOrigin(row.classId))
+		})),
+		pendings: (input.pendings ?? []).map((row) => ({
+			...row,
+			origin: asOrigin(row.origin, row.studentId ? originOfStudent(row.studentId) : classOrigin(row.classId))
+		}))
 	};
-}
-function attentionForClass(input) {
-	const items = [];
-	for (const student of input.students) {
-		const grades = input.grades.filter((grade) => grade.studentId === student.id);
-		const attendance = input.attendance.filter((row) => row.studentId === student.id);
-		const observations = input.observations.filter((row) => row.studentId === student.id);
-		const avg = mean(grades.map((grade) => grade.score));
-		const freq = frequency(attendance);
-		const delays = attendance.filter((row) => row.status === "atraso").length;
-		const difficulties = observations.filter((row) => row.category === "dificuldades").length;
-		const growth = observations.filter((row) => row.category === "evolucao").length;
-		const reasons = [];
-		if (freq && freq.total >= 4 && freq.pct < 75) reasons.push(`Frequência ${freq.pct}%`);
-		if (avg != null && avg < 6) reasons.push(`Média ${fmtScore(avg)}`);
-		if (difficulties >= 2 && growth === 0) reasons.push("Dificuldade sem evolução");
-		if (delays >= 3) reasons.push(countsLabel(delays, "atraso", "atrasos"));
-		if (reasons.length) items.push({
-			student,
-			reasons
-		});
-	}
-	return items.sort((a, b) => b.reasons.length - a.reasons.length || a.student.name.localeCompare(b.student.name, "pt-BR"));
-}
-function suggestCategory(text) {
-	const value = text.toLowerCase();
-	if (/evolu|melhor|avanç|progred|sozinh/.test(value)) return "evolucao";
-	if (/dificuld|não conseguiu|nao conseguiu|travou|confund/.test(value)) return "dificuldades";
-	if (/particip|levantou a mão|levantou a mao|colabor/.test(value)) return "participacao";
-	if (/comport|indisciplin|atras|interromp|conversou/.test(value)) return "comportamento";
-	return null;
 }
 var STATUS = {
 	P: "presente",
@@ -667,62 +293,74 @@ var STUDENTS = [
 	{
 		id: "alice",
 		classId: "7a",
-		name: "Alice Moreira"
+		name: "Alice Moreira",
+		origin: "demo"
 	},
 	{
 		id: "bruno",
 		classId: "7a",
-		name: "Bruno Carvalho"
+		name: "Bruno Carvalho",
+		origin: "demo"
 	},
 	{
 		id: "camila",
 		classId: "7a",
-		name: "Camila Dias"
+		name: "Camila Dias",
+		origin: "demo"
 	},
 	{
 		id: "diego",
 		classId: "7a",
-		name: "Diego Nunes"
+		name: "Diego Nunes",
+		origin: "demo"
 	},
 	{
 		id: "elena",
 		classId: "7a",
-		name: "Elena Rocha"
+		name: "Elena Rocha",
+		origin: "demo"
 	},
 	{
 		id: "felipe",
 		classId: "7a",
-		name: "Felipe Andrade"
+		name: "Felipe Andrade",
+		origin: "demo"
 	},
 	{
 		id: "helena",
 		classId: "8b",
-		name: "Helena Martins"
+		name: "Helena Martins",
+		origin: "demo"
 	},
 	{
 		id: "igor",
 		classId: "8b",
-		name: "Igor Pacheco"
+		name: "Igor Pacheco",
+		origin: "demo"
 	},
 	{
 		id: "julia",
 		classId: "8b",
-		name: "Júlia Ferreira"
+		name: "Júlia Ferreira",
+		origin: "demo"
 	},
 	{
 		id: "kaique",
 		classId: "8b",
-		name: "Kaique Lima"
+		name: "Kaique Lima",
+		origin: "demo"
 	},
 	{
 		id: "lara",
 		classId: "8b",
-		name: "Lara Souza"
+		name: "Lara Souza",
+		origin: "demo"
 	},
 	{
 		id: "miguel",
 		classId: "8b",
-		name: "Miguel Torres"
+		name: "Miguel Torres",
+		origin: "demo"
 	}
 ];
 function createSeed(now) {
@@ -738,7 +376,8 @@ function createSeed(now) {
 				studentId: student.id,
 				classId: student.classId,
 				date: isoDate(date),
-				status: STATUS[code] ?? "presente"
+				status: STATUS[code] ?? "presente",
+				origin: "demo"
 			});
 		});
 	}
@@ -746,11 +385,13 @@ function createSeed(now) {
 		classes: [{
 			id: "7a",
 			name: "7º A",
-			subject: "Matemática"
+			subject: "Matemática",
+			origin: "demo"
 		}, {
 			id: "8b",
 			name: "8º B",
-			subject: "Ciências"
+			subject: "Ciências",
+			origin: "demo"
 		}],
 		students: STUDENTS,
 		observations: NOTES.map(([studentId, classId, offset, category, text], index) => ({
@@ -761,7 +402,8 @@ function createSeed(now) {
 			category,
 			text,
 			source: "texto",
-			createdAt: `${day(offset)}T12:00:00.000Z`
+			createdAt: `${day(offset)}T12:00:00.000Z`,
+			origin: "demo"
 		})),
 		grades: [
 			[
@@ -938,7 +580,8 @@ function createSeed(now) {
 			classId,
 			date: day(offset),
 			title,
-			score
+			score,
+			origin: "demo"
 		})),
 		attendance,
 		exams: [
@@ -947,28 +590,32 @@ function createSeed(now) {
 				classId: "8b",
 				title: "Entrega do relatório reescrito",
 				date: day(3),
-				kind: "trabalho"
+				kind: "trabalho",
+				origin: "demo"
 			},
 			{
 				id: "exam-2",
 				classId: "7a",
 				title: "Prova de equações",
 				date: day(5),
-				kind: "prova"
+				kind: "prova",
+				origin: "demo"
 			},
 			{
 				id: "exam-3",
 				classId: "8b",
 				title: "Avaliação de ecossistemas",
 				date: day(11),
-				kind: "prova"
+				kind: "prova",
+				origin: "demo"
 			},
 			{
 				id: "exam-4",
 				classId: "7a",
 				title: "Recuperação paralela",
 				date: day(14),
-				kind: "recuperacao"
+				kind: "recuperacao",
+				origin: "demo"
 			}
 		],
 		pendings: [
@@ -978,7 +625,8 @@ function createSeed(now) {
 				studentId: null,
 				title: "Lançar as notas do relatório de ciências",
 				due: day(-2),
-				done: false
+				done: false,
+				origin: "demo"
 			},
 			{
 				id: "pend-2",
@@ -986,7 +634,8 @@ function createSeed(now) {
 				studentId: "camila",
 				title: "Falar com a família da Camila Dias",
 				due: day(0),
-				done: false
+				done: false,
+				origin: "demo"
 			},
 			{
 				id: "pend-3",
@@ -994,7 +643,8 @@ function createSeed(now) {
 				studentId: null,
 				title: "Devolver a correção da prova de frações",
 				due: day(1),
-				done: false
+				done: false,
+				origin: "demo"
 			},
 			{
 				id: "pend-4",
@@ -1002,7 +652,8 @@ function createSeed(now) {
 				studentId: "diego",
 				title: "Separar a lista de recuperação do Diego",
 				due: day(6),
-				done: false
+				done: false,
+				origin: "demo"
 			},
 			{
 				id: "pend-5",
@@ -1010,7 +661,8 @@ function createSeed(now) {
 				studentId: "julia",
 				title: "Devolver o modelo de relatório para a Júlia",
 				due: day(-8),
-				done: true
+				done: true,
+				origin: "demo"
 			}
 		]
 	};
@@ -1018,29 +670,37 @@ function createSeed(now) {
 function id() {
 	return crypto.randomUUID();
 }
+function originForStudent(state, studentId) {
+	return state.students.find((student) => student.id === studentId)?.origin ?? "local";
+}
 var usePedStore = create()(persist((set) => ({
 	...createSeed(/* @__PURE__ */ new Date()),
 	addObservation: (input) => set((state) => ({ observations: [{
 		...input,
+		origin: originForStudent(state, input.studentId),
 		id: id(),
 		createdAt: (/* @__PURE__ */ new Date()).toISOString()
 	}, ...state.observations] })),
 	removeObservation: (observationId) => set((state) => ({ observations: state.observations.filter((item) => item.id !== observationId) })),
 	addGrade: (input) => set((state) => ({ grades: [{
 		...input,
+		origin: originForStudent(state, input.studentId),
 		id: id()
 	}, ...state.grades] })),
 	removeGrade: (gradeId) => set((state) => ({ grades: state.grades.filter((item) => item.id !== gradeId) })),
 	upsertAttendance: (input) => set((state) => {
 		const index = state.attendance.findIndex((item) => item.studentId === input.studentId && item.date === input.date);
+		const origin = originForStudent(state, input.studentId);
 		if (index === -1) return { attendance: [...state.attendance, {
 			...input,
+			origin,
 			id: id()
 		}] };
 		const next = state.attendance.slice();
 		next[index] = {
 			...next[index],
-			status: input.status
+			status: input.status,
+			origin
 		};
 		return { attendance: next };
 	}),
@@ -1050,11 +710,13 @@ var usePedStore = create()(persist((set) => ({
 	} : item) })),
 	addPending: (input) => set((state) => ({ pendings: [{
 		...input,
+		origin: input.studentId ? originForStudent(state, input.studentId) : state.classes.find((room) => room.id === input.classId)?.origin ?? "local",
 		id: id(),
 		done: false
 	}, ...state.pendings] })),
 	addExam: (input) => set((state) => ({ exams: [...state.exams, {
 		...input,
+		origin: state.classes.find((room) => room.id === input.classId)?.origin ?? "local",
 		id: id()
 	}].sort((a, b) => a.date.localeCompare(b.date)) })),
 	removeExam: (examId) => set((state) => ({ exams: state.exams.filter((item) => item.id !== examId) })),
@@ -1064,7 +726,8 @@ var usePedStore = create()(persist((set) => ({
 		set((state) => ({ students: [...state.students, {
 			id: id(),
 			classId,
-			name: trimmed
+			name: trimmed,
+			origin: "local"
 		}] }));
 	},
 	resetDemo: () => set(createSeed(/* @__PURE__ */ new Date()))
@@ -1079,8 +742,426 @@ var usePedStore = create()(persist((set) => ({
 		attendance: state.attendance,
 		exams: state.exams,
 		pendings: state.pendings
+	}),
+	merge: (persisted, current) => ({
+		...current,
+		...normalizePedData(persisted)
 	})
 }));
+var ACTIONS = [
+	{
+		id: "organizar",
+		label: "Organizar observação"
+	},
+	{
+		id: "parecer",
+		label: "Gerar parecer"
+	},
+	{
+		id: "evolucao",
+		label: "Analisar evolução"
+	},
+	{
+		id: "intervencoes",
+		label: "Sugerir intervenções"
+	}
+];
+function AssistantView({ today }) {
+	const data = usePedStore();
+	const options = periodOptions(today);
+	const [classId, setClassId] = (0, import_react.useState)(data.classes[0]?.id ?? "");
+	const [studentId, setStudentId] = (0, import_react.useState)("");
+	const [periodKey, setPeriodKey] = (0, import_react.useState)(defaultPeriodKey(today));
+	const [action, setAction] = (0, import_react.useState)("organizar");
+	const [rawText, setRawText] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const [configured, setConfigured] = (0, import_react.useState)(null);
+	const [result, setResult] = (0, import_react.useState)(null);
+	const [draft, setDraft] = (0, import_react.useState)("");
+	const [category, setCategory] = (0, import_react.useState)("geral");
+	const [saved, setSaved] = (0, import_react.useState)(false);
+	const room = data.classes.find((item) => item.id === classId) ?? data.classes[0];
+	const students = data.students.filter((student) => student.classId === room?.id).slice().sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+	const student = students.find((item) => item.id === studentId) ?? students[0];
+	const period = resolvePeriod(periodKey, today);
+	const prior = previousPeriod(period);
+	const origin = student?.origin ?? room?.origin ?? "demo";
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		assistantAvailability().then((value) => {
+			if (active) setConfigured(value.configured);
+		}).catch(() => {
+			if (active) setConfigured(false);
+		});
+		return () => {
+			active = false;
+		};
+	}, []);
+	const payload = (0, import_react.useMemo)(() => {
+		if (!room || !student) return null;
+		const mine = (rows) => rows.filter((row) => row.studentId === student.id && row.origin === origin);
+		return {
+			action,
+			origin,
+			student: {
+				id: student.id,
+				name: student.name,
+				className: room.name,
+				subject: room.subject
+			},
+			period: {
+				label: period.label,
+				start: period.start,
+				end: period.end
+			},
+			comparePeriod: action === "evolucao" ? {
+				label: prior.label,
+				start: prior.start,
+				end: prior.end
+			} : void 0,
+			rawText: action === "organizar" ? rawText : void 0,
+			observations: mine(data.observations).map((row) => ({
+				id: row.id,
+				date: row.date,
+				category: row.category,
+				text: row.text,
+				origin: row.origin
+			})),
+			grades: mine(data.grades).map((row) => ({
+				id: row.id,
+				date: row.date,
+				title: row.title,
+				score: row.score,
+				origin: row.origin
+			})),
+			attendance: mine(data.attendance).map((row) => ({
+				id: row.id,
+				date: row.date,
+				status: row.status,
+				origin: row.origin
+			})),
+			exams: action === "organizar" ? [] : data.exams.filter((row) => row.classId === room.id && row.origin === origin).map((row) => ({
+				id: row.id,
+				date: row.date,
+				title: row.title,
+				origin: row.origin
+			}))
+		};
+	}, [
+		action,
+		data.attendance,
+		data.exams,
+		data.grades,
+		data.observations,
+		origin,
+		period.end,
+		period.label,
+		period.start,
+		prior.end,
+		prior.label,
+		prior.start,
+		rawText,
+		room,
+		student
+	]);
+	async function run() {
+		if (!payload || busy) return;
+		setBusy(true);
+		setSaved(false);
+		setResult(null);
+		try {
+			const next = await runAssistant({ data: payload });
+			setResult(next);
+			if (next.ok) {
+				setDraft(next.draft);
+				setCategory(next.storedCategory);
+			}
+		} catch {
+			setResult({
+				ok: false,
+				code: "error",
+				message: "Não foi possível concluir a análise. Os registros não foram alterados."
+			});
+		} finally {
+			setBusy(false);
+		}
+	}
+	function saveDraft() {
+		if (!room || !student || !draft.trim()) return;
+		data.addObservation({
+			studentId: student.id,
+			classId: room.id,
+			date: isoDate(today),
+			category,
+			text: draft.trim(),
+			source: "texto"
+		});
+		setSaved(true);
+	}
+	function exportDraft() {
+		const blob = new Blob([draft], { type: "text/plain;charset=utf-8" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "parecer-para-revisao.txt";
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+	if (!room || !student || !payload) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Panel, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+		className: "text-sm text-muted",
+		children: "Inclua uma turma e um aluno para usar o assistente."
+	}) });
+	const success = result?.ok ? result : null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "flex flex-col gap-4",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
+				className: "flex flex-col gap-3",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-wrap items-start justify-between gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Assistente" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							className: "font-serif text-2xl font-medium",
+							children: "Leitura para o professor revisar"
+						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "rounded-full border border-line px-3 py-1 text-xs font-medium text-muted",
+							children: origin === "demo" ? "Sala de demonstração" : "Registros deste aparelho"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm text-muted",
+						children: "O texto gerado não é salvo sozinho e não altera nota nem frequência. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta."
+					}),
+					configured === false ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm text-muted",
+						children: "GEMINI_API_KEY não está definida neste ambiente."
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "grid gap-2 sm:grid-cols-2",
+						children: ACTIONS.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							"aria-pressed": action === item.id,
+							onClick: () => {
+								setAction(item.id);
+								setResult(null);
+								setSaved(false);
+							},
+							className: action === item.id ? "h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-fg" : "h-11 rounded-md border border-line bg-card px-3 text-sm font-medium",
+							children: item.label
+						}, item.id))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Turma", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+							className: controlClassName(),
+							value: room.id,
+							onChange: (event) => {
+								setClassId(event.target.value);
+								setStudentId("");
+								setResult(null);
+							},
+							children: data.classes.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("option", {
+								value: item.id,
+								children: [
+									item.name,
+									" · ",
+									item.subject,
+									item.origin === "demo" ? " · demonstração" : ""
+								]
+							}, item.id))
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Aluno", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+							className: controlClassName(),
+							value: student.id,
+							onChange: (event) => {
+								setStudentId(event.target.value);
+								setResult(null);
+							},
+							children: students.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("option", {
+								value: item.id,
+								children: [item.name, item.origin === "demo" ? " · demonstração" : ""]
+							}, item.id))
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Período", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+							className: controlClassName(),
+							value: periodKey,
+							onChange: (event) => {
+								setPeriodKey(event.target.value);
+								setResult(null);
+							},
+							children: options.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+								value: item.key,
+								children: item.label
+							}, item.key))
+						})]
+					}),
+					action === "evolucao" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "text-sm text-muted",
+						children: [
+							"A comparação usa ",
+							prior.label.toLowerCase(),
+							", só com os registros que existirem."
+						]
+					}) : null,
+					action === "organizar" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Texto ou transcrição", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+							className: "min-h-28 w-full rounded-md border border-line bg-card px-3 py-2 text-base",
+							value: rawText,
+							maxLength: 4e3,
+							onChange: (event) => setRawText(event.target.value),
+							placeholder: "Cole ou dite a observação que quer organizar."
+						})]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						onClick: () => void run(),
+						disabled: busy || action === "organizar" && rawText.trim().length < 15,
+						children: busy ? "Consultando o Gemini…" : ACTIONS.find((item) => item.id === action)?.label
+					})
+				]
+			}),
+			busy ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Panel, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm text-muted",
+				children: "Aguardando a resposta. Os registros continuam como estão."
+			}) }) : null,
+			result && !result.ok ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
+				className: "flex flex-col gap-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Não foi possível analisar" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm",
+						children: result.message
+					}),
+					result.missing?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+						className: "list-disc pl-5 text-sm text-muted",
+						children: result.missing.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: item }, item))
+					}) : null
+				]
+			}) : null,
+			success ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Review, {
+				result: success,
+				draft,
+				category,
+				saved,
+				onDraft: setDraft,
+				onCategory: setCategory,
+				onSave: saveDraft,
+				onExport: exportDraft
+			}) : null
+		]
+	});
+}
+function Review({ result, draft, category, saved, onDraft, onCategory, onSave, onExport }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
+		className: "flex flex-col gap-4",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-wrap items-center justify-between gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Gerado pelo Gemini · revise antes de guardar" }), result.demonstrative ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "text-xs font-medium text-muted",
+					children: "Base fictícia de demonstração"
+				}) : null]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "text-sm font-medium",
+				children: "Fatos calculados neste aparelho"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+				className: "mt-1 list-disc pl-5 text-sm text-muted",
+				children: result.facts.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: item }, item))
+			})] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "text-sm font-medium",
+				children: "Leitura da IA, não um fato"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "mt-1 text-sm",
+				children: result.reading
+			})] }),
+			result.suggestions.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "text-sm font-medium",
+				children: "Sugestões, não decisões"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+				className: "mt-1 list-disc pl-5 text-sm",
+				children: result.suggestions.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: item }, item))
+			})] }) : null,
+			result.tags.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "text-sm text-muted",
+				children: ["Categorias sugeridas: ", result.tags.map((tag) => tag in AI_TAG_LABELS ? AI_TAG_LABELS[tag] : tag).join(", ")]
+			}) : null,
+			result.evidence.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "text-sm font-medium",
+				children: "Evidências citadas"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+				className: "mt-1 flex flex-col gap-1 text-sm text-muted",
+				children: result.evidence.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "font-medium text-fg",
+						children: [item.label, "."]
+					}),
+					" ",
+					item.text
+				] }, item.id))
+			})] }) : null,
+			result.missing.length || result.limits.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "text-sm font-medium",
+				children: "O que não está nos registros"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+				className: "mt-1 list-disc pl-5 text-sm text-muted",
+				children: [...result.limits, ...result.missing].map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: item }, item))
+			})] }) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+				className: "flex flex-col gap-1 text-sm",
+				children: ["Texto para aprovar", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+					className: "min-h-36 w-full rounded-md border border-line bg-card px-3 py-2 text-base",
+					value: draft,
+					onChange: (event) => onDraft(event.target.value)
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+				className: "flex flex-col gap-1 text-sm",
+				children: ["Categoria ao salvar", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+					className: controlClassName(),
+					value: category,
+					onChange: (event) => onCategory(event.target.value),
+					children: CATEGORIES.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+						value: item.id,
+						children: item.label
+					}, item.id))
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "text-sm text-muted",
+				children: [
+					"Categoria sugerida para o arquivo: ",
+					categoryLabel(result.storedCategory),
+					". Salvar cria só uma observação."
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col gap-2 sm:flex-row",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					onClick: onSave,
+					disabled: !draft.trim(),
+					children: "Salvar como observação"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "ghost",
+					onClick: onExport,
+					disabled: !draft.trim(),
+					children: "Exportar texto"
+				})]
+			}),
+			saved ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm",
+				children: "Observação guardada neste aparelho. Notas e frequência não mudaram."
+			}) : null
+		]
+	});
+}
 function ClassesView({ today, onOpenStudent }) {
 	const data = usePedStore();
 	const period = resolvePeriod(defaultPeriodKey(today), today);
@@ -1096,7 +1177,7 @@ function ClassesView({ today, onOpenStudent }) {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "flex flex-wrap items-end justify-between gap-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: room.subject }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Eyebrow, { children: [room.subject, room.origin === "demo" ? " · demonstração" : " · seus registros"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 							className: "font-serif text-2xl font-medium",
 							children: room.name
 						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
@@ -1111,7 +1192,8 @@ function ClassesView({ today, onOpenStudent }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
 						className: "flex flex-col",
 						children: students.map((student) => {
-							const avg = mean(data.grades.filter((grade) => grade.studentId === student.id && inRange(grade.date, period.start, period.end)).map((grade) => grade.score));
+							const grades = data.grades.filter((grade) => grade.studentId === student.id && inRange(grade.date, period.start, period.end));
+							const avg = mean(grades.map((grade) => grade.score));
 							const freq = frequency(data.attendance.filter((row) => row.studentId === student.id && inRange(row.date, period.start, period.end)));
 							return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
 								className: "border-t border-line first:border-t-0",
@@ -1434,7 +1516,8 @@ function ConsultView({ today, classId, studentId, onClassId, onStudentId }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
 						className: "flex flex-col",
 						children: classStudents.map((item) => {
-							const avg = mean(scoped.grades.filter((grade) => grade.studentId === item.id).map((grade) => grade.score));
+							const grades = scoped.grades.filter((grade) => grade.studentId === item.id);
+							const avg = mean(grades.map((grade) => grade.score));
 							const freq = frequency(scoped.attendance.filter((row) => row.studentId === item.id));
 							const notes = scoped.observations.filter((row) => row.studentId === item.id).length;
 							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
@@ -1931,8 +2014,9 @@ function HomeView({ today, prefill, onConsultStudent }) {
 	const [examKind, setExamKind] = (0, import_react.useState)("prova");
 	const attention = (0, import_react.useMemo)(() => {
 		return data.classes.flatMap((room) => {
+			const students = data.students.filter((student) => student.classId === room.id);
 			return attentionForClass({
-				students: data.students.filter((student) => student.classId === room.id),
+				students,
 				observations: data.observations.filter((item) => item.classId === room.id && inRange(item.date, period.start, period.end)),
 				grades: data.grades.filter((item) => item.classId === room.id && inRange(item.date, period.start, period.end)),
 				attendance: data.attendance.filter((item) => item.classId === room.id && inRange(item.date, period.start, period.end))
@@ -2332,6 +2416,11 @@ var NAV = [
 		icon: ClipboardList
 	},
 	{
+		id: "assistente",
+		label: "Assistente",
+		icon: Sparkles
+	},
+	{
 		id: "turmas",
 		label: "Turmas",
 		icon: BookOpen
@@ -2419,7 +2508,7 @@ function ReadyApp() {
 					children: "Exemplo pronto para usar. Observações, notas e frequência ficam neste aparelho."
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
-					className: "dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0",
+					className: "dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0",
 					"aria-label": "Seções",
 					children: NAV.map((item) => {
 						const Icon = item.icon;
@@ -2428,7 +2517,7 @@ function ReadyApp() {
 							type: "button",
 							"aria-current": active ? "page" : void 0,
 							onClick: () => setView(item.id),
-							className: cn("flex min-h-12 flex-col items-center justify-center gap-1 py-2 text-xs font-medium md:flex-row md:rounded-full md:px-4", active ? "text-primary md:bg-primary md:text-primary-fg" : "text-muted"),
+							className: cn("flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium leading-tight md:flex-row md:rounded-full md:px-4 md:text-xs", active ? "text-primary md:bg-primary md:text-primary-fg" : "text-muted"),
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
 								className: "size-5",
 								strokeWidth: 1.75,
@@ -2455,6 +2544,7 @@ function ReadyApp() {
 					onClassId: setClassId,
 					onStudentId: setStudentId
 				}) : null,
+				view === "assistente" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AssistantView, { today }) : null,
 				view === "turmas" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClassesView, {
 					today,
 					onOpenStudent: (nextClass, nextStudent) => {
@@ -2468,4 +2558,4 @@ function ReadyApp() {
 }
 var SplitComponent = PedagogicoApp;
 //#endregion
-export { SplitComponent as component, routes_C13z7JfQ_exports as t };
+export { SplitComponent as component, routes_CDAOKBno_exports as t };

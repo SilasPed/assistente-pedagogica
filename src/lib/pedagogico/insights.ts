@@ -7,7 +7,7 @@ import {
   mean,
   possessive,
   type ResolvedPeriod,
-} from "@/lib/pedagogico/dates";
+} from "./dates.ts";
 import type {
   Attendance,
   ClassRoom,
@@ -15,8 +15,8 @@ import type {
   Grade,
   Observation,
   Student,
-} from "@/lib/pedagogico/types";
-import { categoryLabel } from "@/lib/pedagogico/types";
+} from "./types.ts";
+import { categoryLabel } from "./types.ts";
 
 export type Stat = { label: string; value: string };
 

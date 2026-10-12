@@ -1,4 +1,4 @@
-import { K as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
+import { b as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as ResponsiveContainer, i as Line, n as YAxis, o as Tooltip, r as XAxis, t as LineChart } from "../_libs/recharts+[...].mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/grade-chart-CV6rxtFO.js
 var import_jsx_runtime = require_jsx_runtime();

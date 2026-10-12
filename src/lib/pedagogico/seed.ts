@@ -188,18 +188,18 @@ const NOTES: Array<[string, string, number, Category, string]> = [
 ];
 
 const STUDENTS: Student[] = [
-  { id: "alice", classId: "7a", name: "Alice Moreira" },
-  { id: "bruno", classId: "7a", name: "Bruno Carvalho" },
-  { id: "camila", classId: "7a", name: "Camila Dias" },
-  { id: "diego", classId: "7a", name: "Diego Nunes" },
-  { id: "elena", classId: "7a", name: "Elena Rocha" },
-  { id: "felipe", classId: "7a", name: "Felipe Andrade" },
-  { id: "helena", classId: "8b", name: "Helena Martins" },
-  { id: "igor", classId: "8b", name: "Igor Pacheco" },
-  { id: "julia", classId: "8b", name: "Júlia Ferreira" },
-  { id: "kaique", classId: "8b", name: "Kaique Lima" },
-  { id: "lara", classId: "8b", name: "Lara Souza" },
-  { id: "miguel", classId: "8b", name: "Miguel Torres" },
+  { id: "alice", classId: "7a", name: "Alice Moreira", origin: "demo" },
+  { id: "bruno", classId: "7a", name: "Bruno Carvalho", origin: "demo" },
+  { id: "camila", classId: "7a", name: "Camila Dias", origin: "demo" },
+  { id: "diego", classId: "7a", name: "Diego Nunes", origin: "demo" },
+  { id: "elena", classId: "7a", name: "Elena Rocha", origin: "demo" },
+  { id: "felipe", classId: "7a", name: "Felipe Andrade", origin: "demo" },
+  { id: "helena", classId: "8b", name: "Helena Martins", origin: "demo" },
+  { id: "igor", classId: "8b", name: "Igor Pacheco", origin: "demo" },
+  { id: "julia", classId: "8b", name: "Júlia Ferreira", origin: "demo" },
+  { id: "kaique", classId: "8b", name: "Kaique Lima", origin: "demo" },
+  { id: "lara", classId: "8b", name: "Lara Souza", origin: "demo" },
+  { id: "miguel", classId: "8b", name: "Miguel Torres", origin: "demo" },
 ];
 
 export function createSeed(now: Date): PedData {
@@ -217,6 +217,7 @@ export function createSeed(now: Date): PedData {
         classId: student.classId,
         date: isoDate(date),
         status: STATUS[code] ?? "presente",
+        origin: "demo",
       });
     });
   }
@@ -250,8 +251,8 @@ export function createSeed(now: Date): PedData {
 
   return {
     classes: [
-      { id: "7a", name: "7º A", subject: "Matemática" },
-      { id: "8b", name: "8º B", subject: "Ciências" },
+      { id: "7a", name: "7º A", subject: "Matemática", origin: "demo" },
+      { id: "8b", name: "8º B", subject: "Ciências", origin: "demo" },
     ],
     students: STUDENTS,
     observations: NOTES.map(([studentId, classId, offset, category, text], index) => ({
@@ -263,6 +264,7 @@ export function createSeed(now: Date): PedData {
       text,
       source: "texto" as const,
       createdAt: `${day(offset)}T12:00:00.000Z`,
+      origin: "demo" as const,
     })),
     grades: gradeRows.map(([studentId, classId, offset, title, score], index) => ({
       id: `grade-${index + 1}`,
@@ -271,6 +273,7 @@ export function createSeed(now: Date): PedData {
       date: day(offset),
       title,
       score,
+      origin: "demo" as const,
     })),
     attendance,
     exams: [
@@ -280,6 +283,7 @@ export function createSeed(now: Date): PedData {
         title: "Entrega do relatório reescrito",
         date: day(3),
         kind: "trabalho",
+        origin: "demo",
       },
       {
         id: "exam-2",
@@ -287,6 +291,7 @@ export function createSeed(now: Date): PedData {
         title: "Prova de equações",
         date: day(5),
         kind: "prova",
+        origin: "demo",
       },
       {
         id: "exam-3",
@@ -294,6 +299,7 @@ export function createSeed(now: Date): PedData {
         title: "Avaliação de ecossistemas",
         date: day(11),
         kind: "prova",
+        origin: "demo",
       },
       {
         id: "exam-4",
@@ -301,6 +307,7 @@ export function createSeed(now: Date): PedData {
         title: "Recuperação paralela",
         date: day(14),
         kind: "recuperacao",
+        origin: "demo",
       },
     ],
     pendings: [
@@ -311,6 +318,7 @@ export function createSeed(now: Date): PedData {
         title: "Lançar as notas do relatório de ciências",
         due: day(-2),
         done: false,
+        origin: "demo",
       },
       {
         id: "pend-2",
@@ -319,6 +327,7 @@ export function createSeed(now: Date): PedData {
         title: "Falar com a família da Camila Dias",
         due: day(0),
         done: false,
+        origin: "demo",
       },
       {
         id: "pend-3",
@@ -327,6 +336,7 @@ export function createSeed(now: Date): PedData {
         title: "Devolver a correção da prova de frações",
         due: day(1),
         done: false,
+        origin: "demo",
       },
       {
         id: "pend-4",
@@ -335,6 +345,7 @@ export function createSeed(now: Date): PedData {
         title: "Separar a lista de recuperação do Diego",
         due: day(6),
         done: false,
+        origin: "demo",
       },
       {
         id: "pend-5",
@@ -343,6 +354,7 @@ export function createSeed(now: Date): PedData {
         title: "Devolver o modelo de relatório para a Júlia",
         due: day(-8),
         done: true,
+        origin: "demo",
       },
     ],
   };
