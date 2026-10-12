@@ -107,6 +107,65 @@ export function restoreToken(text: string, name: string) {
   return text.split(TOKEN).join(name);
 }
 
+const STATEMENT_STOPWORDS = new Set([
+  "nao",
+  "para",
+  "com",
+  "por",
+  "sem",
+  "que",
+  "uma",
+  "uns",
+  "das",
+  "dos",
+  "nos",
+  "nas",
+  "este",
+  "esta",
+  "esse",
+  "essa",
+  "num",
+  "numa",
+  "aos",
+  "pelo",
+  "pela",
+]);
+
+function statementKey(value: string) {
+  const norm = value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const tokens = norm.split(" ").filter((token) => token.length > 2 && !STATEMENT_STOPWORDS.has(token));
+  return { norm, tokens };
+}
+
+function statementsOverlap(left: string[], right: string[]) {
+  if (!left.length || !right.length) return false;
+  const [shorter, longer] = left.length <= right.length ? [left, right] : [right, left];
+  const pool = new Set(longer);
+  let shared = 0;
+  for (const token of shorter) if (pool.has(token)) shared += 1;
+  return shared / shorter.length >= 0.8;
+}
+
+export function uniqueStatements(items: string[]) {
+  const kept: { text: string; norm: string; tokens: string[] }[] = [];
+  for (const item of items) {
+    const text = item.trim();
+    if (!text) continue;
+    const key = statementKey(text);
+    const duplicate = kept.some(
+      (prev) => prev.norm === key.norm || statementsOverlap(prev.tokens, key.tokens),
+    );
+    if (!duplicate) kept.push({ text, ...key });
+  }
+  return kept.map((entry) => entry.text);
+}
+
 export function buildFactSheet(input: AssistInput): FactSheet {
   const periodObs = input.observations.filter((row) => inRange(row.date, input.period.start, input.period.end));
   const periodGrades = input.grades.filter((row) => inRange(row.date, input.period.start, input.period.end));

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
-import { defaultPeriodKey, fmtScore, inRange, mean, resolvePeriod } from "@/lib/pedagogico/dates";
+import { defaultPeriodKey, fmtScore, inRange, isoDate, mean, resolvePeriod, upcomingExams } from "@/lib/pedagogico/dates";
 import { frequency } from "@/lib/pedagogico/insights";
 import { usePedStore } from "@/lib/pedagogico/store";
 import { TEST_PUBLICATION } from "@/lib/pedagogico/test-publication";
@@ -16,6 +16,7 @@ export function ClassesView({
 }) {
   const data = usePedStore();
   const period = resolvePeriod(defaultPeriodKey(today), today);
+  const todayIso = isoDate(today);
   const [names, setNames] = useState<Record<string, string>>({});
   const [confirmReset, setConfirmReset] = useState(false);
   const [backupNote, setBackupNote] = useState("");
@@ -66,10 +67,7 @@ export function ClassesView({
           .filter((student) => student.classId === room.id)
           .slice()
           .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-        const next = data.exams
-          .filter((exam) => exam.classId === room.id && exam.date >= period.start)
-          .slice()
-          .sort((a, b) => a.date.localeCompare(b.date))[0];
+        const next = upcomingExams(data.exams, todayIso, room.id)[0];
         return (
           <Panel key={room.id} className="flex flex-col gap-3">
             <div className="flex flex-wrap items-end justify-between gap-2">

@@ -106,6 +106,19 @@
   }
 }
 
+.session-retry {
+  opacity: 0;
+  pointer-events: none;
+  animation: session-retry-in 0.01s linear 8s forwards;
+}
+
+@keyframes session-retry-in {
+  to {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .press,
   .press:active {

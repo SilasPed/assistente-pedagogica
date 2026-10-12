@@ -1,4 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { GradeChart } from "@/components/pedagogico/grade-chart";
 import { ReportPanel } from "@/components/pedagogico/report-view";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
 import {
@@ -12,13 +13,12 @@ import {
   periodOptions,
   previousPeriod,
   resolvePeriod,
+  upcomingExams,
 } from "@/lib/pedagogico/dates";
 import { frequency, summarizeClass, summarizeStudent } from "@/lib/pedagogico/insights";
 import { buildReportDraft } from "@/lib/pedagogico/report";
 import { usePedStore } from "@/lib/pedagogico/store";
 import { categoryLabel } from "@/lib/pedagogico/types";
-
-const GradeChart = lazy(() => import("@/components/pedagogico/grade-chart"));
 
 export function ConsultView({
   today,
@@ -65,13 +65,10 @@ export function ConsultView({
     const previousGrades = data.grades.filter(
       (item) => item.classId === room.id && inRange(item.date, prior.start, prior.end),
     );
-    const nextExam =
-      data.exams
-        .filter((exam) => exam.classId === room.id && exam.date >= period.start)
-        .slice()
-        .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
+    const todayIso = isoDate(today);
+    const nextExam = upcomingExams(data.exams, todayIso, room.id)[0] ?? null;
     return { observations, grades, attendance, previousGrades, nextExam };
-  }, [data.attendance, data.exams, data.grades, data.observations, period.end, period.start, prior.end, prior.start, room]);
+  }, [data.attendance, data.exams, data.grades, data.observations, period.end, period.start, prior.end, prior.start, room, today]);
 
   if (!room || !scoped) {
     return <Panel><p className="text-sm text-muted">Cadastre uma turma para consultar.</p></Panel>;
@@ -235,9 +232,7 @@ export function ConsultView({
         <Panel>
           <Eyebrow>Notas ao longo do ano</Eyebrow>
           <h3 className="font-serif text-xl font-medium">Trajetória de {student.name.split(" ")[0]}</h3>
-          <Suspense fallback={<div className="h-48" />}>
-            <GradeChart data={chartPoints} />
-          </Suspense>
+          <GradeChart data={chartPoints} />
         </Panel>
       ) : null}
 

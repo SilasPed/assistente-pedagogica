@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { summarizeStudent } from "./insights.ts";
-import type { Student } from "./types.ts";
+import { upcomingExams } from "./dates.ts";
+import type { Exam, Student } from "./types.ts";
 
 const student: Student = { id: "alice", classId: "7a", name: "Alice Moreira", origin: "demo" };
 const period = {
@@ -41,5 +42,25 @@ describe("resumo do aluno", () => {
     });
     assert.match(summary.body, /estável em relação ao período anterior/);
     assert.equal(summary.body.includes("sem dados do período anterior"), false);
+  });
+});
+
+describe("próximas avaliações", () => {
+  const exams: Exam[] = [
+    { id: "old", classId: "7a", title: "Prova antiga", date: "2026-10-01", kind: "prova", origin: "demo" },
+    { id: "a", classId: "7a", title: "Prova de equações", date: "2026-10-17", kind: "prova", origin: "demo" },
+    { id: "b", classId: "8b", title: "Entrega do relatório reescrito", date: "2026-10-15", kind: "trabalho", origin: "demo" },
+    { id: "c", classId: "7a", title: "Recuperação paralela", date: "2026-10-26", kind: "recuperacao", origin: "demo" },
+  ];
+
+  it("conta a partir de hoje e da turma, mesmo dentro do bimestre", () => {
+    const today = "2026-10-12";
+    assert.deepEqual(
+      upcomingExams(exams, today).map((exam) => exam.id),
+      ["b", "a", "c"],
+    );
+    assert.equal(upcomingExams(exams, today, "7a")[0]?.title, "Prova de equações");
+    assert.equal(upcomingExams(exams, today, "8b")[0]?.title, "Entrega do relatório reescrito");
+    assert.equal(upcomingExams(exams, today, "7a").some((exam) => exam.date < today), false);
   });
 });

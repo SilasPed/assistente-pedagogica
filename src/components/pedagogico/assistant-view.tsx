@@ -3,6 +3,7 @@ import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogic
 import { AI_TAG_LABELS } from "@/lib/pedagogico/ai-tags";
 import { assistantAvailability, runAssistant } from "@/lib/pedagogico/ai.functions";
 import type { AssistResult, AssistSuccess } from "@/lib/pedagogico/ai.server";
+import { uniqueStatements } from "@/lib/pedagogico/ai-contract";
 import {
   defaultPeriodKey,
   isoDate,
@@ -345,7 +346,9 @@ function Review({
         <div>
           <h3 className="text-sm font-medium">O que não está nos registros</h3>
           <ul className="mt-1 list-disc pl-5 text-sm text-muted">
-            {[...result.limits, ...result.missing].map((item) => <li key={item}>{item}</li>)}
+            {uniqueStatements([...result.limits, ...result.missing]).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </div>
       ) : null}

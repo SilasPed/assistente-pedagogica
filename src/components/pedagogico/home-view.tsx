@@ -10,6 +10,7 @@ import {
   isoDate,
   relativeDay,
   resolvePeriod,
+  upcomingExams,
 } from "@/lib/pedagogico/dates";
 import { attentionForClass } from "@/lib/pedagogico/insights";
 import { usePedStore } from "@/lib/pedagogico/store";
@@ -17,10 +18,12 @@ import { categoryLabel, examKindLabel, EXAM_KINDS } from "@/lib/pedagogico/types
 
 export function HomeView({
   today,
+  classId,
   prefill,
   onConsultStudent,
 }: {
   today: Date;
+  classId: string;
   prefill: { classId: string; studentId: string; nonce: number } | null;
   onConsultStudent: (classId: string, studentId: string) => void;
 }) {
@@ -32,11 +35,8 @@ export function HomeView({
     .slice()
     .sort((a, b) => a.due.localeCompare(b.due));
   const overdue = openPendings.filter((item) => item.due < todayIso).length;
-  const upcoming = data.exams
-    .filter((exam) => exam.date >= todayIso)
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const nextExam = upcoming[0];
+  const upcoming = upcomingExams(data.exams, todayIso);
+  const nextExam = (classId ? upcomingExams(data.exams, todayIso, classId)[0] : upcoming[0]) ?? null;
   const donePendings = data.pendings.filter((item) => item.done);
   const [showDone, setShowDone] = useState(false);
   const [showPendingForm, setShowPendingForm] = useState(false);

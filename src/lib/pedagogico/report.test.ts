@@ -52,6 +52,7 @@ describe("parecer individual", () => {
     }
     assert.match(draft.quantitativo, /Não observado no período/);
     assert.equal(draft.place, "");
+    assert.equal(draft.dateLabel, "12 de outubro de 2026");
     assert.equal(reportSignatureLine("", draft.dateLabel), `${draft.dateLabel}.`);
     assert.equal(reportSignatureLine("", draft.dateLabel).includes("Local"), false);
     assert.equal(reportSignatureLine("Bayeux", draft.dateLabel), `Bayeux, ${draft.dateLabel}.`);

@@ -8,6 +8,7 @@ import { TeacherLogin } from "@/components/pedagogico/teacher-login";
 import { TestBanner } from "@/components/pedagogico/test-banner";
 import { Button, controlClassName } from "@/components/pedagogico/ui";
 import { UserButton } from "@/lib/auth/gates";
+import { authClient } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatLong, isoDate } from "@/lib/pedagogico/dates";
 import { DEFAULT_PLACE } from "@/lib/pedagogico/report";
@@ -37,13 +38,49 @@ const NAV: { id: View; label: string; icon: typeof House }[] = [
 export function PedagogicoApp() {
   const { user, isPending } = useCurrentUserState();
   const [mounted, setMounted] = useState(false);
+  const [sessionSlow, setSessionSlow] = useState(false);
+  const [sessionAttempt, setSessionAttempt] = useState(0);
   useEffect(() => setMounted(true), []);
-  if (!mounted || isPending) return <LoadingShell label="Abrindo a sessão…" />;
+  useEffect(() => {
+    if (!mounted || !isPending) {
+      setSessionSlow(false);
+      return;
+    }
+    const retry = window.setTimeout(() => {
+      void authClient.getSession();
+    }, 4_000);
+    const slow = window.setTimeout(() => setSessionSlow(true), 8_000);
+    return () => {
+      window.clearTimeout(retry);
+      window.clearTimeout(slow);
+    };
+  }, [mounted, isPending, sessionAttempt]);
+  if (!mounted || isPending) {
+    return (
+      <LoadingShell
+        label="Abrindo a sessão…"
+        slow={sessionSlow}
+        onRetry={() => {
+          setSessionSlow(false);
+          setSessionAttempt((value) => value + 1);
+          void authClient.getSession();
+        }}
+      />
+    );
+  }
   if (!user) return <TeacherLogin />;
   return <WorkspaceHost userId={user.id} accountName={user.displayName?.trim() ?? ""} />;
 }
 
-function LoadingShell({ label }: { label: string }) {
+function LoadingShell({
+  label,
+  slow = false,
+  onRetry,
+}: {
+  label: string;
+  slow?: boolean;
+  onRetry?: () => void;
+}) {
   return (
     <main className="mx-auto min-h-dvh max-w-5xl">
       <TestBanner />
@@ -53,6 +90,24 @@ function LoadingShell({ label }: { label: string }) {
           Acompanhamento <span className="italic">pedagógico</span>
         </h1>
         <p className="mt-3 text-sm text-muted">{label}</p>
+        <a
+          className="session-retry mt-3 inline-block text-sm text-primary underline"
+          href="/"
+          onClick={(event) => {
+            event.preventDefault();
+            window.location.reload();
+          }}
+        >
+          A sessão demorou. Recarregar a página
+        </a>
+        {slow ? (
+          <div className="mt-3 flex max-w-md flex-col items-start gap-2">
+            <p className="text-sm">A sessão não respondeu. Nada foi apagado.</p>
+            {onRetry ? (
+              <Button onClick={onRetry}>Tentar de novo</Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </main>
   );
@@ -65,6 +120,7 @@ function WorkspaceHost({ userId, accountName }: { userId: string; accountName: s
   const [legacy, setLegacy] = useState<PedData | null>(null);
   const [loadError, setLoadError] = useState("");
   const [saveLabel, setSaveLabel] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [boundUser, setBoundUser] = useState(userId);
   if (boundUser !== userId) {
     setBoundUser(userId);
@@ -81,9 +137,15 @@ function WorkspaceHost({ userId, accountName }: { userId: string; accountName: s
     setPhase("loading");
     setSaveLabel("");
     usePedStore.getState().replaceAll(emptyPedData());
+    const timer = window.setTimeout(() => {
+      if (!active) return;
+      setLoadError("Os registros demoraram para abrir. Nada foi apagado.");
+      setPhase("error");
+    }, 12_000);
     void loadWorkspace()
       .then((result) => {
         if (!active) return;
+        window.clearTimeout(timer);
         if (result.data && pedHasRows(result.data)) usePedStore.getState().replaceAll(result.data);
         setTeacherName(result.teacherName.trim() || accountName);
         setPlace(result.place.trim() || DEFAULT_PLACE);
@@ -93,13 +155,15 @@ function WorkspaceHost({ userId, accountName }: { userId: string; accountName: s
       })
       .catch(() => {
         if (!active) return;
+        window.clearTimeout(timer);
         setLoadError("Não foi possível abrir os registros desta conta. Nada foi apagado.");
         setPhase("error");
       });
     return () => {
       active = false;
+      window.clearTimeout(timer);
     };
-  }, [userId]);
+  }, [userId, accountName, loadAttempt]);
 
   useEffect(() => {
     if (phase !== "ready") return;
@@ -159,6 +223,9 @@ function WorkspaceHost({ userId, accountName }: { userId: string; accountName: s
       <main className="mx-auto flex min-h-dvh max-w-xl flex-col gap-3 px-4 py-8">
         <h1 className="display-title">Acompanhamento <span className="italic">pedagógico</span></h1>
         <p className="text-sm">{loadError}</p>
+        <Button className="self-start" onClick={() => setLoadAttempt((value) => value + 1)}>
+          Tentar de novo
+        </Button>
       </main>
     );
   }
@@ -337,6 +404,7 @@ function ReadyApp({
         {view === "inicio" ? (
           <HomeView
             today={today}
+            classId={classId || firstClassId}
             prefill={prefill}
             onConsultStudent={(nextClass, nextStudent) => {
               openStudent(nextClass, nextStudent);

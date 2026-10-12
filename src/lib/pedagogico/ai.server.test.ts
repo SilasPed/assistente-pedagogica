@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ThinkingLevel } from "@google/genai";
-import { dossierForModel, buildFactSheet, maskNames, analysisResponseSchema, organizeResponseSchema, type AssistInput } from "./ai-contract.ts";
+import { dossierForModel, buildFactSheet, maskNames, analysisResponseSchema, organizeResponseSchema, uniqueStatements, type AssistInput } from "./ai-contract.ts";
 import { GeminiCallError, classifyGeminiFailure, firstGeminiText, geminiAttemptPlan, geminiFailureMessage, geminiFailureShouldFallback, geminiResponseText, geminiThinkingConfig, resolveGeminiModel } from "./gemini.server.ts";
 import { assistWith, rateKeyFromHeaders, resetAssistantRateLimit } from "./ai.server.ts";
 
@@ -265,6 +265,48 @@ describe("assistWith", { concurrency: 1 }, () => {
     ] }));
     assert.equal(sheet.enough, true);
     assert.ok(sheet.limits.some((item) => item.includes("Não há registros em 3º bimestre")));
+  });
+
+  it("descarta paráfrase e mantém lacuna diferente", () => {
+    const system = "3º bimestre: não há lançamentos de frequência.";
+    const paraphrase = "Não há lançamentos de frequência no 3º bimestre.";
+    const other = "Não há nota de recuperação.";
+    assert.deepEqual(uniqueStatements([system, paraphrase, other, system]), [system, other]);
+    assert.deepEqual(
+      uniqueStatements([
+        "Não há registros em 3º bimestre. Nenhuma evolução ou conclusão pode ser afirmada nesse intervalo.",
+        "Não há registros em 3º bimestre.",
+        "Isto é uma leitura, não um diagnóstico.",
+      ]).length,
+      2,
+    );
+  });
+
+  it("não repete a lacuna que o modelo só parafraseia", async () => {
+    const result = await assistWith(input({ attendance: [] }), {
+      apiKey: "k",
+      rateKey: "dedupe-lacuna",
+      now: 90_000,
+      generate: async () =>
+        JSON.stringify({
+          reading: "Há participação e nota; a frequência não foi lançada.",
+          suggestions: [],
+          evidenceIds: ["e1"],
+          missing: [
+            "3º bimestre: não há lançamentos de frequência.",
+            "Não há lançamentos de frequência no 3º bimestre.",
+            "Não há nota de recuperação.",
+          ],
+          limits: ["Isto é uma leitura, não um diagnóstico."],
+        }),
+    });
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      const freq = result.missing.filter((item) => item.includes("frequência"));
+      assert.deepEqual(freq, ["3º bimestre: não há lançamentos de frequência."]);
+      assert.ok(result.missing.some((item) => item.includes("recuperação")));
+      assert.ok(result.missing.some((item) => item.includes("Não há")));
+    }
   });
 
   it("mascara o nome antes de montar o dossiê", () => {

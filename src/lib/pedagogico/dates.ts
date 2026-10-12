@@ -9,6 +9,7 @@ import {
   subDays,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { Exam } from "./types.ts";
 
 export type BimesterIndex = 1 | 2 | 3 | 4;
 
@@ -70,7 +71,14 @@ export function formatDay(iso: string) {
 }
 
 export function formatLong(iso: string) {
-  return format(parseISO(iso), "d 'de' MMMM", { locale: ptBR });
+  return format(parseISO(iso), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
+}
+
+export function upcomingExams(exams: Exam[], todayIso: string, classId?: string) {
+  return exams
+    .filter((exam) => exam.date >= todayIso && (!classId || exam.classId === classId))
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title, "pt-BR"));
 }
 
 export function formatRange(start: string, end: string) {

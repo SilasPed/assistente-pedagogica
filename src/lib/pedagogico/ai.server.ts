@@ -9,6 +9,7 @@ import {
   organizeResultSchema,
   restoreToken,
   SYSTEM_PROMPT,
+  uniqueStatements,
   type AssistInput,
   type FactSheet,
 } from "./ai-contract.ts";
@@ -235,8 +236,14 @@ export async function assistWith(
     const evidence = evidenceFromModelIds(sheet, analysis.evidenceIds);
     const reading = restoreToken(analysis.reading, name);
     const suggestions = analysis.suggestions.map((item) => restoreToken(item, name));
-    const missing = [...sheet.missing, ...analysis.missing.map((item) => restoreToken(item, name))];
-    const limits = [...sheet.limits, ...analysis.limits.map((item) => restoreToken(item, name))];
+    const missing = uniqueStatements([
+      ...sheet.missing,
+      ...analysis.missing.map((item) => restoreToken(item, name)),
+    ]);
+    const limits = uniqueStatements([
+      ...sheet.limits,
+      ...analysis.limits.map((item) => restoreToken(item, name)),
+    ]);
     const draft = [reading, suggestions.length ? `Sugestões para revisar:\n${suggestions.map((item) => `- ${item}`).join("\n")}` : ""]
       .filter(Boolean)
       .join("\n\n");
