@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { ThinkingLevel } from "@google/genai";
 import { dossierForModel, buildFactSheet, maskNames, analysisResponseSchema, organizeResponseSchema, type AssistInput } from "./ai-contract.ts";
-import { GeminiCallError, classifyGeminiFailure, geminiFailureMessage, geminiResponseText, resolveGeminiModel } from "./gemini.server.ts";
+import { GeminiCallError, classifyGeminiFailure, firstGeminiText, geminiAttemptPlan, geminiFailureMessage, geminiFailureShouldFallback, geminiResponseText, geminiThinkingConfig, resolveGeminiModel } from "./gemini.server.ts";
 import { assistWith, rateKeyFromHeaders, resetAssistantRateLimit } from "./ai.server.ts";
 
 const period = { label: "3º bimestre", start: "2026-08-03", end: "2026-09-18" };
@@ -39,11 +40,59 @@ const okGenerate = async () =>
   });
 
 describe("modelo do Gemini", () => {
-  it("troca o alias instável por gemini-2.5-flash", () => {
+  it("tenta o flash estável e, se ele falhar, o alias que já respondeu", () => {
     assert.equal(resolveGeminiModel(undefined), "gemini-2.5-flash");
-    assert.equal(resolveGeminiModel("  "), "gemini-2.5-flash");
     assert.equal(resolveGeminiModel("gemini-flash-latest"), "gemini-2.5-flash");
-    assert.equal(resolveGeminiModel("gemini-2.5-pro"), "gemini-2.5-pro");
+    assert.deepEqual(geminiAttemptPlan(undefined), [
+      { model: "gemini-2.5-flash", thinking: "budget0" },
+      { model: "gemini-flash-latest", thinking: "low" },
+    ]);
+    assert.deepEqual(geminiAttemptPlan("gemini-flash-latest"), geminiAttemptPlan(undefined));
+    assert.deepEqual(geminiAttemptPlan("gemini-2.5-pro"), [{ model: "gemini-2.5-pro", thinking: "none" }]);
+    assert.deepEqual(geminiThinkingConfig("budget0"), { thinkingConfig: { thinkingBudget: 0 } });
+    assert.deepEqual(geminiThinkingConfig("low"), { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } });
+    assert.deepEqual(geminiThinkingConfig("none"), {});
+  });
+
+  it("não troca de modelo em chave recusada nem em tempo esgotado", () => {
+    assert.equal(geminiFailureShouldFallback({ status: 404 }), true);
+    assert.equal(geminiFailureShouldFallback({ status: 400 }), true);
+    assert.equal(geminiFailureShouldFallback(new GeminiCallError("unavailable")), true);
+    assert.equal(geminiFailureShouldFallback({ status: 401 }), false);
+    assert.equal(geminiFailureShouldFallback({ status: 429 }), false);
+    const aborted = new Error("aborted");
+    aborted.name = "TimeoutError";
+    assert.equal(geminiFailureShouldFallback(aborted), false);
+  });
+
+  it("passa ao alias quando o modelo estável responde 404", async () => {
+    const seen: string[] = [];
+    const text = await firstGeminiText(geminiAttemptPlan("gemini-2.5-flash"), async (attempt, relax) => {
+      seen.push(`${attempt.model}:${relax}`);
+      if (attempt.model === "gemini-2.5-flash") {
+        const missing = new Error("missing");
+        Object.assign(missing, { status: 404 });
+        throw missing;
+      }
+      return '{"ok":true}';
+    });
+    assert.equal(text, '{"ok":true}');
+    assert.deepEqual(seen, ["gemini-2.5-flash:false", "gemini-flash-latest:false"]);
+  });
+
+  it("repete o mesmo modelo sem raciocínio só depois de um 400", async () => {
+    const seen: string[] = [];
+    const text = await firstGeminiText([{ model: "gemini-2.5-flash", thinking: "budget0" }], async (attempt, relax) => {
+      seen.push(String(relax));
+      if (!relax) {
+        const rejected = new Error("budget");
+        Object.assign(rejected, { status: 400 });
+        throw rejected;
+      }
+      return '{"ok":true}';
+    });
+    assert.equal(text, '{"ok":true}');
+    assert.deepEqual(seen, ["false", "true"]);
   });
 
   it("ignora o raciocínio e lê o JSON da resposta", () => {
@@ -53,6 +102,12 @@ describe("modelo do Gemini", () => {
         candidates: [{ content: { parts: [{ thought: true, text: "pensando" }, { text: '{"ok":true}' }] } }],
       }),
       '{"ok":true}',
+    );
+    assert.equal(
+      geminiResponseText({
+        candidates: [{ content: { parts: [{ thought: true, text: 'rascunho {"organizedText":"ok"}' }] } }],
+      }),
+      '{"organizedText":"ok"}',
     );
   });
 });
