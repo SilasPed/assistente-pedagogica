@@ -11,12 +11,14 @@ export type GeminiAttempt = {
 export class GeminiCallError extends Error {
   readonly code: GeminiFailureCode;
   readonly status: number;
+  readonly detail: string;
 
-  constructor(code: GeminiFailureCode, status = 0) {
+  constructor(code: GeminiFailureCode, status = 0, detail = "") {
     super(code);
     this.name = "GeminiCallError";
     this.code = code;
     this.status = status;
+    this.detail = detail;
   }
 }
 
@@ -133,24 +135,41 @@ export async function firstGeminiText(
   attempts: GeminiAttempt[],
   call: (attempt: GeminiAttempt, relaxThinking: boolean) => Promise<string>,
 ) {
+  const trace: string[] = [];
   let last: unknown;
   for (const attempt of attempts) {
     try {
       return await call(attempt, false);
     } catch (error) {
       last = error;
-      if (!geminiFailureShouldFallback(error)) throw error;
-      if (statusOf(error) === 400 && attempt.thinking !== "none") {
+      trace.push(traceLabel(attempt.model, error, false));
+      if (!geminiFailureShouldFallback(error)) throw withDetail(error, trace);
+      if (attempt.thinking !== "none") {
         try {
           return await call(attempt, true);
         } catch (retryError) {
           last = retryError;
-          if (!geminiFailureShouldFallback(retryError)) throw retryError;
+          trace.push(traceLabel(attempt.model, retryError, true));
+          if (!geminiFailureShouldFallback(retryError)) throw withDetail(retryError, trace);
         }
       }
     }
   }
-  throw last ?? new GeminiCallError("unavailable");
+  throw withDetail(last ?? new GeminiCallError("unavailable"), trace);
+}
+
+function traceLabel(model: string, error: unknown, relaxed: boolean) {
+  const status = statusOf(error);
+  const code = error instanceof GeminiCallError ? error.code : status ? `http-${status}` : "erro";
+  return `${model}${relaxed ? " sem-raciocinio" : ""} ${code}`;
+}
+
+function withDetail(error: unknown, trace: string[]) {
+  const detail = trace.join("; ").slice(0, 240);
+  if (error instanceof GeminiCallError) {
+    return new GeminiCallError(error.code, error.status, detail);
+  }
+  return new GeminiCallError(classifyGeminiFailure(error), statusOf(error), detail);
 }
 
 export async function generateGeminiJson(args: {

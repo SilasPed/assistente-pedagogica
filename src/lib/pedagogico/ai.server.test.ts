@@ -77,22 +77,35 @@ describe("modelo do Gemini", () => {
       return '{"ok":true}';
     });
     assert.equal(text, '{"ok":true}');
-    assert.deepEqual(seen, ["gemini-2.5-flash:false", "gemini-flash-latest:false"]);
+    assert.deepEqual(seen, ["gemini-2.5-flash:false", "gemini-2.5-flash:true", "gemini-flash-latest:false"]);
   });
 
-  it("repete o mesmo modelo sem raciocínio só depois de um 400", async () => {
+  it("repete sem raciocínio mesmo quando a recusa não é HTTP 400", async () => {
     const seen: string[] = [];
-    const text = await firstGeminiText([{ model: "gemini-2.5-flash", thinking: "budget0" }], async (attempt, relax) => {
+    const text = await firstGeminiText([{ model: "gemini-flash-latest", thinking: "low" }], async (_attempt, relax) => {
       seen.push(String(relax));
-      if (!relax) {
-        const rejected = new Error("budget");
-        Object.assign(rejected, { status: 400 });
-        throw rejected;
-      }
+      if (!relax) throw new Error("thinkingLevel recusado pelo SDK");
       return '{"ok":true}';
     });
     assert.equal(text, '{"ok":true}');
     assert.deepEqual(seen, ["false", "true"]);
+  });
+
+  it("guarda só modelo e código no diagnóstico, sem o corpo do erro", async () => {
+    const secret = "AIza-segredo-nao-mostrar";
+    await assert.rejects(
+      () =>
+        firstGeminiText([{ model: "gemini-2.5-flash", thinking: "budget0" }], async () => {
+          throw Object.assign(new Error(`corpo ${secret}`), { status: 404 });
+        }),
+      (error: unknown) => {
+        assert.ok(error instanceof GeminiCallError);
+        assert.equal(error.detail.includes("gemini-2.5-flash"), true);
+        assert.equal(error.detail.includes(secret), false);
+        assert.equal(error.message.includes(secret), false);
+        return true;
+      },
+    );
   });
 
   it("ignora o raciocínio e lê o JSON da resposta", () => {

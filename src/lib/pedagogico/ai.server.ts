@@ -201,7 +201,12 @@ export async function assistWith(
     });
   } catch (error) {
     const code = error instanceof GeminiCallError ? error.code : "unavailable";
-    return { ok: false, code, message: geminiFailureMessage(code) };
+    const detail = error instanceof GeminiCallError ? error.detail : "";
+    return {
+      ok: false,
+      code,
+      message: detail ? `${geminiFailureMessage(code)} Diagnóstico: ${detail}.` : geminiFailureMessage(code),
+    };
   }
 
   try {
