@@ -4,3 +4,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+.vercel/output/functions/__server.func/_libs/pglite.data
+.vercel/output/functions/__server.func/_libs/pglite.wasm
+.vercel/output/functions/__server.func/_libs/initdb.wasm
+
+

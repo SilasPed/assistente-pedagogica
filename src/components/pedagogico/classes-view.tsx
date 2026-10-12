@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
 import { defaultPeriodKey, fmtScore, inRange, mean, resolvePeriod } from "@/lib/pedagogico/dates";
 import { frequency } from "@/lib/pedagogico/insights";
 import { usePedStore } from "@/lib/pedagogico/store";
+import { legacyStateFromJson, pedDataFromUnknown, snapshotPed } from "@/lib/pedagogico/workspace";
+import { saveWorkspace } from "@/lib/pedagogico/workspace.functions";
 
 export function ClassesView({
   today,
@@ -15,6 +17,46 @@ export function ClassesView({
   const period = resolvePeriod(defaultPeriodKey(today), today);
   const [names, setNames] = useState<Record<string, string>>({});
   const [confirmReset, setConfirmReset] = useState(false);
+  const [backupNote, setBackupNote] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function downloadBackup() {
+    const blob = new Blob([JSON.stringify(snapshotPed(usePedStore.getState()), null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "acompanhamento-pedagogico.json";
+    link.click();
+    URL.revokeObjectURL(url);
+    setBackupNote("Arquivo baixado. Guarde-o você mesmo: isto não é um backup automático do servidor.");
+  }
+
+  async function restoreBackup(file: File) {
+    setBackupNote("");
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await file.text()) as unknown;
+    } catch {
+      setBackupNote("O arquivo não é um JSON válido. Nada foi substituído.");
+      return;
+    }
+    const wrapped = parsed && typeof parsed === "object" && "state" in parsed ? (parsed as { state: unknown }).state : parsed;
+    const next = pedDataFromUnknown(wrapped) ?? legacyStateFromJson(JSON.stringify(parsed));
+    if (!next) {
+      setBackupNote("O arquivo não tem registros reconhecíveis. Nada foi substituído.");
+      return;
+    }
+    if (!window.confirm("Isso substitui os registros desta conta pelo arquivo. Continuar?")) return;
+    usePedStore.getState().replaceAll(next);
+    try {
+      const saved = await saveWorkspace({ data: next });
+      setBackupNote(saved.ok ? "Cópia restaurada nesta conta." : saved.message);
+    } catch {
+      setBackupNote("A cópia entrou na tela, mas não foi possível gravá-la na conta.");
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -93,10 +135,30 @@ export function ClassesView({
         );
       })}
 
-      <div className="flex flex-col items-start gap-2 px-1">
+      <div className="flex flex-col items-start gap-3 px-1">
         <p className="text-sm text-muted">
-          Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. Outro navegador não recebe cópia.
+          Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. A cópia em JSON é um arquivo que você guarda. Não é um backup testado do servidor: na pré-visualização o banco some ao reiniciar.
         </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="ghost" onClick={downloadBackup}>
+            Baixar cópia JSON
+          </Button>
+          <Button variant="ghost" onClick={() => fileRef.current?.click()}>
+            Restaurar cópia JSON
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void restoreBackup(file);
+            }}
+          />
+        </div>
+        {backupNote ? <p className="text-sm">{backupNote}</p> : null}
         <button
           type="button"
           className="text-sm font-medium text-muted"

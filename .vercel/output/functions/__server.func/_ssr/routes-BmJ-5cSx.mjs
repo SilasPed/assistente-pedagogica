@@ -1,42 +1,19 @@
-import { o as __toESM, r as __exportAll } from "../_runtime.mjs";
+import { o as __toESM } from "../_runtime.mjs";
 import { b as require_jsx_runtime, q as require_react } from "../_libs/@tanstack/react-router+[...].mjs";
-import { i as getServerFnById, n as createServerFn, r as TSS_SERVER_FUNCTION } from "./ssr.mjs";
+import { a as getServerFnById, i as TSS_SERVER_FUNCTION, r as createServerFn } from "./ssr.mjs";
+import { t as authMiddleware } from "./middleware-FkX9NQas.mjs";
 import { l as addDays } from "../_libs/date-fns.mjs";
 import { C as resolvePeriod, E as summarizeStudent, S as relativeDay, T as summarizeClass, _ as isoDate, a as EXAM_KINDS, b as previousPeriod, c as defaultPeriodKey, d as fmtScore, f as formatDay, g as inRange, h as frequency, i as CATEGORIES, l as examKindLabel, m as formatRange, n as AI_TAG_LABELS, o as attentionForClass, p as formatLong, r as ATTENDANCE_OPTIONS, s as categoryLabel, u as firstName, v as mean, w as suggestCategory, x as recentWeekdays, y as periodOptions } from "./insights-DdMgi_fN.mjs";
-import { t as clsx } from "../_libs/clsx.mjs";
+import { i as signOut, t as authClient } from "./client-IWHfIGH2.mjs";
+import { a as hasGateSessionMarker } from "./server-Dnb-uQaE.mjs";
+import { a as cn, i as TeacherLogin, n as Eyebrow, o as controlClassName, r as Panel, t as Button } from "./teacher-login-Cp9eKXvy.mjs";
 import { a as Mic, c as Check, i as Plus, l as BookOpen, n as Square, o as House, r as Sparkles, s as ClipboardList } from "../_libs/lucide-react.mjs";
-import { t as twMerge } from "../_libs/tailwind-merge.mjs";
-import { n as create, t as persist } from "../_libs/zustand.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-CSeAaAlC.js
-var routes_CSeAaAlC_exports = /* @__PURE__ */ __exportAll({ component: () => SplitComponent });
+import { a as pedHasRows, c as snapshotPed, i as pedDataFromUnknown, n as emptyPedData, o as readLegacyPedData, r as legacyStateFromJson, s as restoreDemoData, t as clearLegacyPedData } from "./workspace-9sPa0GGy.mjs";
+import { t as create } from "../_libs/zustand.mjs";
+import { a as Paragraph, c as TableRow, i as Packer, l as TextRun, n as BorderStyle, o as Table, r as File, s as TableCell, t as AlignmentType, u as WidthType } from "../_libs/docx.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-BmJ-5cSx.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-function cn(...inputs) {
-	return twMerge(clsx(inputs));
-}
-function Panel({ className, children, id }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-		id,
-		className: cn("panel p-4 md:p-5", className),
-		children
-	});
-}
-function Eyebrow({ children }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-		className: "text-sm font-medium text-muted",
-		children
-	});
-}
-function controlClassName() {
-	return "h-11 w-full min-w-0 rounded-md border border-line bg-card px-3 text-base text-fg";
-}
-function Button({ variant = "primary", className, type = "button", ...props }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-		type,
-		className: cn("press inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-40", variant === "primary" && "h-11 bg-primary px-4 text-primary-fg", variant === "ghost" && "h-11 border border-line bg-card px-4 text-fg", variant === "quiet" && "text-muted", className),
-		...props
-	});
-}
 var createSsrRpc = (functionId) => {
 	const url = "/_serverFn/" + functionId;
 	const serverFnMeta = { id: functionId };
@@ -49,95 +26,8 @@ var createSsrRpc = (functionId) => {
 		[TSS_SERVER_FUNCTION]: true
 	});
 };
-var assistantAvailability = createServerFn({ method: "POST" }).handler(createSsrRpc("913178b5974f6a7505593057104a405a54e43ac8c1b9f7d65ea7c2b0042855c6"));
-var runAssistant = createServerFn({ method: "POST" }).validator((input) => input).handler(createSsrRpc("465efbab6ced4d9e382fe76362009d92b4327f7ca239d68e366c11359ae864ad"));
-var DEMO_CLASS_IDS = /* @__PURE__ */ new Set(["7a", "8b"]);
-var DEMO_STUDENT_IDS = /* @__PURE__ */ new Set([
-	"alice",
-	"bruno",
-	"camila",
-	"diego",
-	"elena",
-	"felipe",
-	"helena",
-	"igor",
-	"julia",
-	"kaique",
-	"lara",
-	"miguel"
-]);
-function asOrigin(value, fallback) {
-	return value === "demo" || value === "local" ? value : fallback;
-}
-function classOrigin(classId, current) {
-	if (current === "demo" || current === "local") return current;
-	return DEMO_CLASS_IDS.has(classId) ? "demo" : "local";
-}
-function studentOrigin(student) {
-	if (student.origin === "demo" || student.origin === "local") return student.origin;
-	return DEMO_STUDENT_IDS.has(student.id) ? "demo" : "local";
-}
-function normalizePedData(input) {
-	if (!input) return {};
-	if (![
-		input?.classes,
-		input?.students,
-		input?.observations,
-		input?.grades,
-		input?.attendance,
-		input?.exams,
-		input?.pendings
-	].some((rows) => Array.isArray(rows) && rows.length > 0)) return {};
-	const classes = (input.classes ?? []).map((room) => ({
-		...room,
-		origin: classOrigin(room.id, room.origin)
-	}));
-	const students = (input.students ?? []).map((student) => ({
-		...student,
-		origin: studentOrigin(student)
-	}));
-	const originOfStudent = (studentId) => students.find((student) => student.id === studentId)?.origin ?? "local";
-	return {
-		classes,
-		students,
-		observations: (input.observations ?? []).map((row) => ({
-			...row,
-			origin: asOrigin(row.origin, originOfStudent(row.studentId))
-		})),
-		grades: (input.grades ?? []).map((row) => ({
-			...row,
-			origin: asOrigin(row.origin, originOfStudent(row.studentId))
-		})),
-		attendance: (input.attendance ?? []).map((row) => ({
-			...row,
-			origin: asOrigin(row.origin, originOfStudent(row.studentId))
-		})),
-		exams: (input.exams ?? []).map((row) => ({
-			...row,
-			origin: asOrigin(row.origin, classOrigin(row.classId))
-		})),
-		pendings: (input.pendings ?? []).map((row) => ({
-			...row,
-			origin: asOrigin(row.origin, row.studentId ? originOfStudent(row.studentId) : classOrigin(row.classId))
-		}))
-	};
-}
-function localRows(rows) {
-	return rows.filter((row) => row.origin === "local");
-}
-/** Recria a sala fictícia e preserva o que foi incluído neste aparelho. */
-function restoreDemoData(current, seed) {
-	const seedClassIds = new Set(seed.classes.map((room) => room.id));
-	return {
-		classes: [...seed.classes, ...current.classes.filter((room) => room.origin === "local" && !seedClassIds.has(room.id))],
-		students: [...seed.students, ...localRows(current.students)],
-		observations: [...seed.observations, ...localRows(current.observations)],
-		grades: [...seed.grades, ...localRows(current.grades)],
-		attendance: [...seed.attendance, ...localRows(current.attendance)],
-		exams: [...seed.exams, ...localRows(current.exams)],
-		pendings: [...seed.pendings, ...localRows(current.pendings)]
-	};
-}
+var assistantAvailability = createServerFn({ method: "POST" }).middleware([authMiddleware]).handler(createSsrRpc("913178b5974f6a7505593057104a405a54e43ac8c1b9f7d65ea7c2b0042855c6"));
+var runAssistant = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((input) => input).handler(createSsrRpc("465efbab6ced4d9e382fe76362009d92b4327f7ca239d68e366c11359ae864ad"));
 var STATUS = {
 	P: "presente",
 	F: "falta",
@@ -698,8 +588,8 @@ function id() {
 function originForStudent(state, studentId) {
 	return state.students.find((student) => student.id === studentId)?.origin ?? "local";
 }
-var usePedStore = create()(persist((set) => ({
-	...createSeed(/* @__PURE__ */ new Date()),
+var usePedStore = create()((set) => ({
+	...emptyPedData(),
 	addObservation: (input) => set((state) => ({ observations: [{
 		...input,
 		origin: originForStudent(state, input.studentId),
@@ -755,22 +645,15 @@ var usePedStore = create()(persist((set) => ({
 			origin: "local"
 		}] }));
 	},
-	resetDemo: () => set((state) => restoreDemoData(state, createSeed(/* @__PURE__ */ new Date())))
-}), {
-	name: "acompanhamento-pedagogico-v1",
-	skipHydration: true,
-	partialize: (state) => ({
-		classes: state.classes,
-		students: state.students,
-		observations: state.observations,
-		grades: state.grades,
-		attendance: state.attendance,
-		exams: state.exams,
-		pendings: state.pendings
-	}),
-	merge: (persisted, current) => ({
-		...current,
-		...normalizePedData(persisted)
+	resetDemo: () => set((state) => restoreDemoData(state, createSeed(/* @__PURE__ */ new Date()))),
+	replaceAll: (data) => set({
+		classes: data.classes,
+		students: data.students,
+		observations: data.observations,
+		grades: data.grades,
+		attendance: data.attendance,
+		exams: data.exams,
+		pendings: data.pendings
 	})
 }));
 var ACTIONS = [
@@ -801,6 +684,7 @@ function AssistantView({ today }) {
 	const [rawText, setRawText] = (0, import_react.useState)("");
 	const [busy, setBusy] = (0, import_react.useState)(false);
 	const [configured, setConfigured] = (0, import_react.useState)(null);
+	const [availabilityNote, setAvailabilityNote] = (0, import_react.useState)("");
 	const [result, setResult] = (0, import_react.useState)(null);
 	const [draft, setDraft] = (0, import_react.useState)("");
 	const [category, setCategory] = (0, import_react.useState)("geral");
@@ -816,7 +700,7 @@ function AssistantView({ today }) {
 		assistantAvailability().then((value) => {
 			if (active) setConfigured(value.configured);
 		}).catch(() => {
-			if (active) setConfigured(false);
+			if (active) setAvailabilityNote("Não foi possível saber se o assistente está disponível.");
 		});
 		return () => {
 			active = false;
@@ -948,20 +832,24 @@ function AssistantView({ today }) {
 							children: "Leitura para o professor revisar"
 						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 							className: "rounded-full border border-line px-3 py-1 text-xs font-medium text-muted",
-							children: origin === "demo" ? "Sala de demonstração" : "Registros deste aparelho"
+							children: origin === "demo" ? "Sala de demonstração" : "Registros da conta"
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-muted",
-						children: "O texto gerado não é salvo sozinho e não altera nota nem frequência. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta."
+						children: "A leitura sai só para você revisar. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta. O pedido segue com o nome mascarado e só com o recorte do período."
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-muted",
-						children: "Não há login. A checagem de mesma origem não identifica o professor. Não registre dados reais de alunos num endereço público: eles ficam só neste navegador e se perdem ao trocar de aparelho."
+						children: "O texto gerado não é salvo sozinho e não altera nota nem frequência. Login identifica a conta, mas não impede o modelo de errar. Não trate a leitura como parecer oficial."
 					}),
 					configured === false ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-muted",
 						children: "GEMINI_API_KEY não está definida neste ambiente."
+					}) : null,
+					availabilityNote ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm text-muted",
+						children: availabilityNote
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "grid gap-2 sm:grid-cols-2",
@@ -1097,7 +985,7 @@ function Review({ result, draft, category, saved, onDraft, onCategory, onSave, o
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 				className: "text-sm font-medium",
-				children: "Fatos calculados neste aparelho"
+				children: "Fatos calculados a partir dos registros"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
 				className: "mt-1 list-disc pl-5 text-sm text-muted",
 				children: result.facts.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: item }, item))
@@ -1184,16 +1072,55 @@ function Review({ result, draft, category, saved, onDraft, onCategory, onSave, o
 			}),
 			saved ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-sm",
-				children: "Observação guardada neste aparelho. Notas e frequência não mudaram."
+				children: "Observação guardada na sua conta. Notas e frequência não mudaram."
 			}) : null
 		]
 	});
 }
+var loadWorkspace = createServerFn({ method: "GET" }).middleware([authMiddleware]).handler(createSsrRpc("faf514c89fe6022b6047999a38117ba1ace68a533b25e26dd57811cc3aee2e2e"));
+var saveWorkspace = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((input) => input).handler(createSsrRpc("949f20a62f960a59b6cd076cfca26f459d0a7f0a6a5e1b7c7ba6b541b9a2cec8"));
+var saveTeacherProfile = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((input) => input).handler(createSsrRpc("95a55828c7d6ee3d87cdd311870c163d4131f0b336916c050f8bb4fa62e2d44b"));
 function ClassesView({ today, onOpenStudent }) {
 	const data = usePedStore();
 	const period = resolvePeriod(defaultPeriodKey(today), today);
 	const [names, setNames] = (0, import_react.useState)({});
 	const [confirmReset, setConfirmReset] = (0, import_react.useState)(false);
+	const [backupNote, setBackupNote] = (0, import_react.useState)("");
+	const fileRef = (0, import_react.useRef)(null);
+	function downloadBackup() {
+		const blob = new Blob([JSON.stringify(snapshotPed(usePedStore.getState()), null, 2)], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = "acompanhamento-pedagogico.json";
+		link.click();
+		URL.revokeObjectURL(url);
+		setBackupNote("Arquivo baixado. Guarde-o você mesmo: isto não é um backup automático do servidor.");
+	}
+	async function restoreBackup(file) {
+		setBackupNote("");
+		let parsed;
+		try {
+			parsed = JSON.parse(await file.text());
+		} catch {
+			setBackupNote("O arquivo não é um JSON válido. Nada foi substituído.");
+			return;
+		}
+		const wrapped = parsed && typeof parsed === "object" && "state" in parsed ? parsed.state : parsed;
+		const next = pedDataFromUnknown(wrapped) ?? legacyStateFromJson(JSON.stringify(parsed));
+		if (!next) {
+			setBackupNote("O arquivo não tem registros reconhecíveis. Nada foi substituído.");
+			return;
+		}
+		if (!window.confirm("Isso substitui os registros desta conta pelo arquivo. Continuar?")) return;
+		usePedStore.getState().replaceAll(next);
+		try {
+			const saved = await saveWorkspace({ data: next });
+			setBackupNote(saved.ok ? "Cópia restaurada nesta conta." : saved.message);
+		} catch {
+			setBackupNote("A cópia entrou na tela, mas não foi possível gravá-la na conta.");
+		}
+	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "flex flex-col gap-4",
 		children: [data.classes.map((room) => {
@@ -1270,31 +1197,453 @@ function ClassesView({ today, onOpenStudent }) {
 				]
 			}, room.id);
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "flex flex-col items-start gap-2 px-1",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				className: "text-sm text-muted",
-				children: "Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. Outro navegador não recebe cópia."
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-				type: "button",
-				className: "text-sm font-medium text-muted",
-				onClick: () => {
-					if (!confirmReset) {
-						setConfirmReset(true);
-						return;
-					}
-					data.resetDemo();
-					setConfirmReset(false);
-				},
-				children: confirmReset ? "Confirmar restauração do exemplo" : "Restaurar exemplo"
-			})]
+			className: "flex flex-col items-start gap-3 px-1",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-sm text-muted",
+					children: "Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. A cópia em JSON é um arquivo que você guarda. Não é um backup testado do servidor: na pré-visualização o banco some ao reiniciar."
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex flex-col gap-2 sm:flex-row",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							onClick: downloadBackup,
+							children: "Baixar cópia JSON"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							onClick: () => fileRef.current?.click(),
+							children: "Restaurar cópia JSON"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							ref: fileRef,
+							type: "file",
+							accept: "application/json,.json",
+							className: "hidden",
+							onChange: (event) => {
+								const file = event.target.files?.[0];
+								event.target.value = "";
+								if (file) restoreBackup(file);
+							}
+						})
+					]
+				}),
+				backupNote ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-sm",
+					children: backupNote
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					type: "button",
+					className: "text-sm font-medium text-muted",
+					onClick: () => {
+						if (!confirmReset) {
+							setConfirmReset(true);
+							return;
+						}
+						data.resetDemo();
+						setConfirmReset(false);
+					},
+					children: confirmReset ? "Confirmar restauração do exemplo" : "Restaurar exemplo"
+				})
+			]
 		})]
 	});
 }
+var FONT = "Times New Roman";
+var NONE = {
+	style: BorderStyle.NONE,
+	size: 0,
+	color: "FFFFFF"
+};
+var LINE = {
+	style: BorderStyle.SINGLE,
+	size: 4,
+	color: "1F3A42"
+};
+function run(text, options) {
+	return new TextRun({
+		text,
+		bold: options?.bold,
+		font: FONT,
+		size: options?.size ?? 22
+	});
+}
+function paragraph(text, options) {
+	return new Paragraph({
+		alignment: options?.center ? AlignmentType.CENTER : AlignmentType.LEFT,
+		spacing: {
+			before: options?.before ?? 0,
+			after: options?.after ?? 120
+		},
+		children: [run(text, options)]
+	});
+}
+function lines(text) {
+	const parts = text.split("\n");
+	return parts.map((line, index) => paragraph(line || " ", { after: index === parts.length - 1 ? 160 : 40 }));
+}
+function cell(text, bold = false) {
+	return new TableCell({
+		width: {
+			size: bold ? 28 : 72,
+			type: WidthType.PERCENTAGE
+		},
+		margins: {
+			top: 60,
+			bottom: 60,
+			left: 80,
+			right: 80
+		},
+		borders: {
+			top: LINE,
+			bottom: LINE,
+			left: LINE,
+			right: LINE
+		},
+		children: [paragraph(text, {
+			bold,
+			after: 0
+		})]
+	});
+}
+function row(label, value) {
+	return new TableRow({ children: [cell(label, true), cell(value || " ")] });
+}
+function section(title, body) {
+	return [paragraph(title, {
+		bold: true,
+		size: 24,
+		before: 280,
+		after: 80
+	}), ...lines(body)];
+}
+function reportDocument(draft) {
+	return new File({ sections: [{
+		properties: { page: { margin: {
+			top: 720,
+			bottom: 720,
+			left: 900,
+			right: 900
+		} } },
+		children: [
+			paragraph(draft.school, {
+				bold: true,
+				center: true,
+				size: 28,
+				after: 80
+			}),
+			paragraph("Parecer individual", {
+				center: true,
+				size: 24,
+				after: 240
+			}),
+			new Table({
+				width: {
+					size: 100,
+					type: WidthType.PERCENTAGE
+				},
+				borders: {
+					top: NONE,
+					bottom: NONE,
+					left: NONE,
+					right: NONE,
+					insideHorizontal: NONE,
+					insideVertical: NONE
+				},
+				rows: [
+					row("Estudante", draft.student),
+					row("Turma", draft.className),
+					row("Componente", draft.subject),
+					row("Professor", draft.teacher || " "),
+					row("Período", draft.periodLabel)
+				]
+			}),
+			...section("Registros quantitativos do período", draft.quantitativo),
+			...section("Aspectos comunicativos", draft.comunicativos),
+			...section("Aspectos emocionais e comportamentais", draft.emocionais),
+			...section("Avanços observados", draft.avancos),
+			...section("Desafios e dificuldades — Leitura", draft.leitura),
+			...section("Desafios e dificuldades — Escrita", draft.escrita),
+			...section("Desafios e dificuldades — Concentração", draft.concentracao),
+			...section("Desafios e dificuldades — Outros registros", draft.outrasDificuldades),
+			...section("Possíveis causas e desafios", draft.causas),
+			...section("Intervenção individualizada", draft.intervencao),
+			...section("Estratégias pedagógicas diferenciadas", draft.estrategias),
+			...section("Observação geral", draft.geral),
+			paragraph(`${draft.place || "Local"} , ${draft.dateLabel}.`, {
+				before: 400,
+				after: 360
+			}),
+			paragraph("________________________________", {
+				center: true,
+				after: 40
+			}),
+			paragraph(draft.teacher || "Professor(a)", {
+				center: true,
+				after: 0
+			})
+		]
+	}] });
+}
+function reportToBlob(draft) {
+	return Packer.toBlob(reportDocument(draft));
+}
+var SCHOOL_NAME = "ESCOLA CIDADÃ INTEGRAL TÉCNICA ERENICE CAVALCANTE FIDELES";
+var EMPTY_SECTION = "Não observado no período";
+var READING = [
+	"leitura",
+	" ler ",
+	" leu ",
+	"lendo",
+	"leitor"
+];
+var WRITING = [
+	"escrita",
+	"escrever",
+	"escreveu",
+	"escrevendo",
+	"redação",
+	"redacao"
+];
+var FOCUS = [
+	"concentração",
+	"concentracao",
+	"atenção",
+	"atencao",
+	"concentrou"
+];
+var CAUSE = [
+	"porque",
+	"devido",
+	"motivo",
+	"causa"
+];
+var INTERVENTION = [
+	"intervenção",
+	"intervencao",
+	"intervir"
+];
+var STRATEGY = [
+	"estratégia",
+	"estrategia",
+	"adaptação",
+	"adaptacao",
+	"diferenciada"
+];
+function hasWord(text, needles) {
+	const padded = ` ${text.toLocaleLowerCase("pt-BR")} `;
+	return needles.some((needle) => padded.includes(needle));
+}
+function dated(rows) {
+	if (!rows.length) return EMPTY_SECTION;
+	return rows.slice().sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id)).map((row) => `${formatDay(row.date)} — ${row.text.trim()}`).join("\n");
+}
+function buildReportDraft(input) {
+	const observations = input.observations.filter((row) => inRange(row.date, input.periodStart, input.periodEnd));
+	const grades = input.grades.filter((row) => inRange(row.date, input.periodStart, input.periodEnd));
+	const attendance = input.attendance.filter((row) => inRange(row.date, input.periodStart, input.periodEnd));
+	const of = (category) => observations.filter((row) => row.category === category);
+	const difficulties = of("dificuldades");
+	const reading = difficulties.filter((row) => hasWord(row.text, READING));
+	const writing = difficulties.filter((row) => hasWord(row.text, WRITING));
+	const focus = difficulties.filter((row) => hasWord(row.text, FOCUS));
+	const used = new Set([
+		...reading,
+		...writing,
+		...focus
+	].map((row) => row.id));
+	const other = difficulties.filter((row) => !used.has(row.id));
+	const avg = mean(grades.map((grade) => grade.score));
+	const freq = frequency(attendance);
+	const quantitativo = [avg == null ? `Notas: ${EMPTY_SECTION}` : `Média ${fmtScore(avg)} em ${grades.length} nota(s) registrada(s).`, freq ? `Frequência ${freq.pct}% (${freq.present} de ${freq.total} lançamentos).` : `Frequência: ${EMPTY_SECTION}`].join("\n");
+	return {
+		school: SCHOOL_NAME,
+		student: input.studentName,
+		className: input.className,
+		subject: input.subject,
+		teacher: input.teacher.trim(),
+		place: input.place.trim(),
+		dateLabel: formatLong(input.today),
+		periodLabel: input.periodLabel,
+		quantitativo,
+		comunicativos: dated(of("participacao")),
+		emocionais: dated(of("comportamento")),
+		avancos: dated(of("evolucao")),
+		leitura: dated(reading),
+		escrita: dated(writing),
+		concentracao: dated(focus),
+		outrasDificuldades: dated(other),
+		causas: dated(observations.filter((row) => hasWord(row.text, CAUSE))),
+		intervencao: dated(observations.filter((row) => hasWord(row.text, INTERVENTION))),
+		estrategias: dated(observations.filter((row) => hasWord(row.text, STRATEGY))),
+		geral: dated(of("geral"))
+	};
+}
+var SECTIONS = [
+	{
+		key: "quantitativo",
+		label: "Registros quantitativos do período"
+	},
+	{
+		key: "comunicativos",
+		label: "Aspectos comunicativos"
+	},
+	{
+		key: "emocionais",
+		label: "Aspectos emocionais e comportamentais"
+	},
+	{
+		key: "avancos",
+		label: "Avanços observados"
+	},
+	{
+		key: "leitura",
+		label: "Desafios e dificuldades — Leitura"
+	},
+	{
+		key: "escrita",
+		label: "Desafios e dificuldades — Escrita"
+	},
+	{
+		key: "concentracao",
+		label: "Desafios e dificuldades — Concentração"
+	},
+	{
+		key: "outrasDificuldades",
+		label: "Desafios e dificuldades — Outros registros"
+	},
+	{
+		key: "causas",
+		label: "Possíveis causas e desafios"
+	},
+	{
+		key: "intervencao",
+		label: "Intervenção individualizada"
+	},
+	{
+		key: "estrategias",
+		label: "Estratégias pedagógicas diferenciadas"
+	},
+	{
+		key: "geral",
+		label: "Observação geral"
+	}
+];
+function fileSlug(name) {
+	return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "aluno";
+}
+function ReportPanel({ initial, onRebuild }) {
+	const [draft, setDraft] = (0, import_react.useState)(initial);
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const [error, setError] = (0, import_react.useState)("");
+	function setText(key, value) {
+		setDraft((current) => ({
+			...current,
+			[key]: value
+		}));
+	}
+	async function download() {
+		setBusy(true);
+		setError("");
+		try {
+			const blob = await reportToBlob({
+				...draft,
+				school: SCHOOL_NAME
+			});
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `parecer-${fileSlug(draft.student)}.docx`;
+			link.click();
+			URL.revokeObjectURL(url);
+		} catch {
+			setError("Não foi possível gerar o arquivo Word.");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Panel, {
+		className: "flex flex-col gap-3",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eyebrow, { children: "Parecer individual" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+				className: "font-serif text-2xl font-medium",
+				children: "Pré-visualização editável"
+			})] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm text-muted",
+				children: "O texto nasce só dos registros do período. Onde não há registro, fica “Não observado no período”. O que você alterar aqui entra no Word; isso não muda as observações salvas e não inventa nota nem frequência."
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-center text-sm font-medium",
+				children: SCHOOL_NAME
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid gap-2 sm:grid-cols-2",
+				children: [
+					["student", "Estudante"],
+					["className", "Turma"],
+					["subject", "Componente"],
+					["teacher", "Professor"],
+					["periodLabel", "Período"],
+					["place", "Local"],
+					["dateLabel", "Data"]
+				].map(([key, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+					className: "flex flex-col gap-1 text-sm",
+					children: [label, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						className: controlClassName(),
+						value: draft[key],
+						onChange: (event) => setText(key, event.target.value)
+					})]
+				}, key))
+			}),
+			SECTIONS.map((section) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+				className: "flex flex-col gap-1 text-sm",
+				children: [section.label, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+					className: "min-h-24 w-full rounded-md border border-line bg-card px-3 py-2 text-base",
+					value: draft[section.key],
+					onChange: (event) => setText(section.key, event.target.value)
+				})]
+			}, section.key)),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "text-sm text-muted",
+				children: [
+					draft.place.trim() || "Local",
+					" , ",
+					draft.dateLabel || "data",
+					". Assinatura: ",
+					draft.teacher.trim() || "Professor(a)",
+					"."
+				]
+			}),
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col gap-2 sm:flex-row",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					onClick: () => void download(),
+					disabled: busy,
+					children: busy ? "Gerando…" : "Baixar Word"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "ghost",
+					onClick: () => {
+						setDraft(onRebuild());
+						setError("");
+					},
+					children: "Recarregar dos registros"
+				})]
+			})
+		]
+	});
+}
 var GradeChart = (0, import_react.lazy)(() => import("./grade-chart-CV6rxtFO.mjs"));
-function ConsultView({ today, classId, studentId, onClassId, onStudentId }) {
+function ConsultView({ today, classId, studentId, teacher, place, onClassId, onStudentId }) {
 	const data = usePedStore();
 	const [periodKey, setPeriodKey] = (0, import_react.useState)(defaultPeriodKey(today));
 	const [confirmId, setConfirmId] = (0, import_react.useState)(null);
+	const [showReport, setShowReport] = (0, import_react.useState)(false);
 	const period = resolvePeriod(periodKey, today);
 	const prior = previousPeriod(period);
 	const options = periodOptions(today);
@@ -1373,6 +1722,20 @@ function ConsultView({ today, classId, studentId, onClassId, onStudentId }) {
 			meta: "frequência"
 		}))
 	].sort((a, b) => b.date.localeCompare(a.date)) : [];
+	const reportDraft = student ? buildReportDraft({
+		studentName: student.name,
+		className: room.name,
+		subject: room.subject,
+		teacher,
+		place,
+		today: isoDate(today),
+		periodLabel: period.label,
+		periodStart: period.start,
+		periodEnd: period.end,
+		observations: data.observations.filter((row) => row.studentId === student.id),
+		grades: data.grades.filter((row) => row.studentId === student.id),
+		attendance: data.attendance.filter((row) => row.studentId === student.id)
+	}) : null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "flex flex-col gap-4",
 		children: [
@@ -1576,7 +1939,18 @@ function ConsultView({ today, classId, studentId, onClassId, onStudentId }) {
 						})
 					})
 				]
-			})
+			}),
+			student && reportDraft ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col gap-3",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "ghost",
+					onClick: () => setShowReport((open) => !open),
+					children: showReport ? "Fechar parecer" : "Parecer em Word"
+				}), showReport ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReportPanel, {
+					initial: reportDraft,
+					onRebuild: () => reportDraft
+				}, `${student.id}-${period.start}-${period.end}`) : null]
+			}) : null
 		]
 	});
 }
@@ -2431,6 +2805,104 @@ function HomeView({ today, prefill, onConsultStudent }) {
 		]
 	});
 }
+/**
+* Current user + loading state. Same behavior in live preview and when deployed:
+*   - Auth enabled -> the real signed-in user; `user` is `null` while
+*                            the session resolves (`isPending: true`) and when
+*                            signed out (`isPending: false`). Session comes from
+*                            Better Auth `useSession()` → `/api/auth/get-session`
+*                            (cookie when deployed; bearer in live preview).
+*   - Auth disabled (`VITE_AUTH_ENABLED=false`) -> `DEV_USER`, never pending.
+*
+* Protect a route by waiting out `isPending` before acting on `user` —
+* redirecting on `user: null` alone bounces signed-in visitors to sign-in on
+* every hard reload:
+*
+*   import { RedirectToSignIn } from "@/lib/auth/gates";
+*   const { user, isPending } = useCurrentUserState();
+*   if (isPending) return null;              // still resolving — don't redirect yet
+*   if (!user) return <RedirectToSignIn />;  // definitely signed out
+*
+* `authEnabled` is a module-level constant fixed at load, so the guarded hook
+* call keeps a stable hook order across every render of a given component.
+*/
+function useCurrentUserState() {
+	return useSessionUserState();
+}
+function useSessionUserState() {
+	const { data, isPending } = authClient.useSession();
+	const id = data?.user.id;
+	const displayName = data?.user.name ?? null;
+	const primaryEmail = data?.user.email ?? null;
+	const profileImageUrl = data?.user.image ?? null;
+	const user = (0, import_react.useMemo)(() => id ? {
+		id,
+		displayName,
+		primaryEmail,
+		profileImageUrl,
+		isDevFallback: false
+	} : null, [
+		id,
+		displayName,
+		primaryEmail,
+		profileImageUrl
+	]);
+	return (0, import_react.useMemo)(() => ({
+		user,
+		isPending
+	}), [user, isPending]);
+}
+/**
+* Convenience view of `useCurrentUserState().user` for display (e.g.
+* `user?.displayName ?? "Guest"`). NOTE: `null` means *loading OR signed out* —
+* for redirects/guards use `useCurrentUserState()` and check `isPending`.
+*/
+function useCurrentUser() {
+	return useCurrentUserState().user;
+}
+var subscribeToNothing = () => () => {};
+var noGateSessionOnServer = () => false;
+/**
+* Minimal signed-in identity chip + sign-out. Restyle freely (see the
+* `design-ui` skill). Sign-out is only shown when auth is enabled (the
+* disabled-auth dev user has nothing to sign out of) and the session is not
+* gate-materialized — behind the gate the next request signs the viewer
+* straight back in, so a sign-out control there is a broken loop.
+*/
+function UserButton() {
+	const user = useCurrentUser();
+	const [signingOut, setSigningOut] = (0, import_react.useState)(false);
+	const gateSession = (0, import_react.useSyncExternalStore)(subscribeToNothing, hasGateSessionMarker, noGateSessionOnServer);
+	if (!user) return null;
+	const label = user.displayName ?? user.primaryEmail ?? "Account";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "flex items-center gap-2",
+		children: [
+			user.profileImageUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+				src: user.profileImageUrl,
+				alt: "",
+				className: "h-8 w-8 rounded-full object-cover"
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "grid h-8 w-8 place-items-center rounded-full bg-black/10 text-sm font-medium dark:bg-white/20",
+				children: label.charAt(0).toUpperCase()
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "text-sm font-medium",
+				children: label
+			}),
+			!gateSession && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				type: "button",
+				disabled: signingOut,
+				onClick: () => {
+					setSigningOut(true);
+					signOut().catch(() => setSigningOut(false));
+				},
+				className: "cursor-pointer text-sm underline-offset-4 opacity-70 hover:underline disabled:cursor-wait disabled:no-underline",
+				children: signingOut ? "Signing out…" : "Sign out"
+			})
+		]
+	});
+}
 var NAV = [
 	{
 		id: "inicio",
@@ -2454,17 +2926,15 @@ var NAV = [
 	}
 ];
 function PedagogicoApp() {
-	const [ready, setReady] = (0, import_react.useState)(false);
-	(0, import_react.useEffect)(() => {
-		let active = true;
-		Promise.resolve(usePedStore.persist.rehydrate()).finally(() => {
-			if (active) setReady(true);
-		});
-		return () => {
-			active = false;
-		};
-	}, []);
-	if (!ready) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
+	const { user, isPending } = useCurrentUserState();
+	const [mounted, setMounted] = (0, import_react.useState)(false);
+	(0, import_react.useEffect)(() => setMounted(true), []);
+	if (!mounted || isPending) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadingShell, { label: "Abrindo a sessão…" });
+	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeacherLogin, {});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WorkspaceHost, { userId: user.id });
+}
+function LoadingShell({ label }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 		className: "mx-auto min-h-dvh max-w-5xl px-4 py-8",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
@@ -2480,22 +2950,146 @@ function PedagogicoApp() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-3 text-sm text-muted",
-				children: "Abrindo os registros da sala…"
+				children: label
 			})
 		]
 	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReadyApp, {});
 }
-function ReadyApp() {
-	const classes = usePedStore((state) => state.classes);
+function WorkspaceHost({ userId }) {
+	const [phase, setPhase] = (0, import_react.useState)("loading");
+	const [teacherName, setTeacherName] = (0, import_react.useState)("");
+	const [place, setPlace] = (0, import_react.useState)("");
+	const [legacy, setLegacy] = (0, import_react.useState)(null);
+	const [loadError, setLoadError] = (0, import_react.useState)("");
+	const [saveLabel, setSaveLabel] = (0, import_react.useState)("");
+	const [boundUser, setBoundUser] = (0, import_react.useState)(userId);
+	if (boundUser !== userId) {
+		setBoundUser(userId);
+		setPhase("loading");
+		setLegacy(null);
+		setTeacherName("");
+		setPlace("");
+		setSaveLabel("");
+		setLoadError("");
+	}
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		setPhase("loading");
+		setSaveLabel("");
+		usePedStore.getState().replaceAll(emptyPedData());
+		loadWorkspace().then((result) => {
+			if (!active) return;
+			if (result.data && pedHasRows(result.data)) usePedStore.getState().replaceAll(result.data);
+			setTeacherName(result.teacherName);
+			setPlace(result.place);
+			const stored = readLegacyPedData();
+			setLegacy(stored && pedHasRows(stored) ? stored : null);
+			setPhase("ready");
+		}).catch(() => {
+			if (!active) return;
+			setLoadError("Não foi possível abrir os registros desta conta. Nada foi apagado.");
+			setPhase("error");
+		});
+		return () => {
+			active = false;
+		};
+	}, [userId]);
+	(0, import_react.useEffect)(() => {
+		if (phase !== "ready") return;
+		let timer = 0;
+		let ticket = 0;
+		const unsub = usePedStore.subscribe(() => {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(() => {
+				const current = ++ticket;
+				const data = snapshotPed(usePedStore.getState());
+				setSaveLabel("Salvando…");
+				saveWorkspace({ data }).then((result) => {
+					if (current !== ticket) return;
+					setSaveLabel(result.ok ? "Salvo na sua conta" : result.message);
+				}).catch(() => {
+					if (current === ticket) setSaveLabel("Não foi possível salvar na conta.");
+				});
+			}, 600);
+		});
+		return () => {
+			window.clearTimeout(timer);
+			unsub();
+		};
+	}, [phase, userId]);
+	async function commitProfile(nextName, nextPlace) {
+		try {
+			await saveTeacherProfile({ data: {
+				displayName: nextName,
+				place: nextPlace
+			} });
+		} catch {
+			setSaveLabel("Não foi possível salvar o nome do professor.");
+		}
+	}
+	async function importLegacy() {
+		if (!legacy) return;
+		if (!window.confirm("Isso substitui os registros desta conta pela cópia antiga deste navegador. Continuar?")) return;
+		usePedStore.getState().replaceAll(legacy);
+		try {
+			const saved = await saveWorkspace({ data: legacy });
+			if (!saved.ok) {
+				setSaveLabel(saved.message);
+				return;
+			}
+			clearLegacyPedData();
+			setLegacy(null);
+			setSaveLabel("Cópia deste navegador importada para a conta.");
+		} catch {
+			setSaveLabel("A cópia entrou na tela, mas não foi gravada na conta. O navegador ainda guarda o arquivo antigo.");
+		}
+	}
+	if (phase === "loading") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadingShell, { label: "Abrindo os registros da conta…" });
+	if (phase === "error") return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
+		className: "mx-auto flex min-h-dvh max-w-xl flex-col gap-3 px-4 py-8",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+			className: "display-title",
+			children: ["Acompanhamento ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "italic",
+				children: "pedagógico"
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+			className: "text-sm",
+			children: loadError
+		})]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReadyApp, {
+		teacherName,
+		place,
+		saveLabel,
+		legacy,
+		onTeacherName: setTeacherName,
+		onPlace: setPlace,
+		onProfileCommit: (nextName, nextPlace) => void commitProfile(nextName, nextPlace),
+		onImportLegacy: () => void importLegacy(),
+		onDismissLegacy: () => setLegacy(null),
+		onLoadDemo: () => usePedStore.getState().replaceAll(createSeed(/* @__PURE__ */ new Date()))
+	});
+}
+function ReadyApp({ teacherName, place, saveLabel, legacy, onTeacherName, onPlace, onProfileCommit, onImportLegacy, onDismissLegacy, onLoadDemo }) {
+	const classCount = usePedStore((state) => state.classes.length);
+	const firstClassId = usePedStore((state) => state.classes[0]?.id ?? "");
 	const [today] = (0, import_react.useState)(() => /* @__PURE__ */ new Date());
 	const [view, setView] = (0, import_react.useState)("inicio");
-	const [classId, setClassId] = (0, import_react.useState)(classes[0]?.id ?? "");
+	const [classId, setClassId] = (0, import_react.useState)(firstClassId);
 	const [studentId, setStudentId] = (0, import_react.useState)("all");
 	const [prefill, setPrefill] = (0, import_react.useState)(null);
+	const profileTimer = (0, import_react.useRef)(0);
+	(0, import_react.useEffect)(() => {
+		if (!classId && firstClassId) setClassId(firstClassId);
+	}, [classId, firstClassId]);
 	(0, import_react.useEffect)(() => {
 		window.scrollTo(0, 0);
 	}, [view]);
+	function scheduleProfile(nextName, nextPlace) {
+		window.clearTimeout(profileTimer.current);
+		profileTimer.current = window.setTimeout(() => onProfileCommit(nextName, nextPlace), 500);
+	}
 	function openStudent(nextClass, nextStudent) {
 		setClassId(nextClass);
 		setStudentId(nextStudent);
@@ -2515,7 +3109,7 @@ function ReadyApp() {
 			className: "mx-auto flex w-full max-w-5xl flex-col px-4 pt-6 md:px-8",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between",
+					className: "flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm font-medium text-muted",
 						children: "Sala de aula"
@@ -2525,14 +3119,51 @@ function ReadyApp() {
 							className: "italic",
 							children: "pedagógico"
 						})]
-					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "text-sm text-muted",
-						children: formatLong(isoDate(today))
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-col items-start gap-1 sm:items-end",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm text-muted",
+								children: formatLong(isoDate(today))
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserButton, {}),
+							saveLabel ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-xs text-muted",
+								children: saveLabel
+							}) : null
+						]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "mt-2 max-w-xl text-sm text-muted",
-					children: "Exemplo pronto para usar. Observações, notas e frequência ficam só neste navegador."
+					children: "Os registros ficam na conta de quem entrou. A cópia em JSON, em Turmas, é um arquivo seu — não é um backup automático do servidor."
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-3 grid gap-2 sm:grid-cols-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Nome no parecer", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: controlClassName(),
+							value: teacherName,
+							maxLength: 80,
+							onChange: (event) => {
+								onTeacherName(event.target.value);
+								scheduleProfile(event.target.value, place);
+							}
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "flex flex-col gap-1 text-sm",
+						children: ["Local no parecer", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: controlClassName(),
+							value: place,
+							maxLength: 80,
+							placeholder: "Cidade, sem inventar",
+							onChange: (event) => {
+								onPlace(event.target.value);
+								scheduleProfile(teacherName, event.target.value);
+							}
+						})]
+					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 					className: "dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0",
@@ -2557,6 +3188,34 @@ function ReadyApp() {
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 			className: "mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 pt-5 pb-28 md:px-8 md:pb-16",
 			children: [
+				legacy ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel flex flex-col gap-2 p-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm",
+						children: "Este navegador ainda tem uma cópia antiga dos registros. Ela não entra sozinha. Importar substitui o que está nesta conta."
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-col gap-2 sm:flex-row",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							onClick: onImportLegacy,
+							children: "Importar cópia deste navegador"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							onClick: onDismissLegacy,
+							children: "Agora não"
+						})]
+					})]
+				}) : null,
+				classCount === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel flex flex-col gap-2 p-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm",
+						children: "Esta conta ainda não tem turma. A sala fictícia é só um exemplo, marcada como demonstração."
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						className: "self-start",
+						onClick: onLoadDemo,
+						children: "Carregar sala fictícia"
+					})]
+				}) : null,
 				view === "inicio" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HomeView, {
 					today,
 					prefill,
@@ -2568,6 +3227,8 @@ function ReadyApp() {
 					today,
 					classId,
 					studentId,
+					teacher: teacherName,
+					place,
 					onClassId: setClassId,
 					onStudentId: setStudentId
 				}) : null,
@@ -2585,4 +3246,4 @@ function ReadyApp() {
 }
 var SplitComponent = PedagogicoApp;
 //#endregion
-export { SplitComponent as component, routes_CSeAaAlC_exports as t };
+export { SplitComponent as component };

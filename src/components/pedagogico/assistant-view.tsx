@@ -33,6 +33,7 @@ export function AssistantView({ today }: { today: Date }) {
   const [rawText, setRawText] = useState("");
   const [busy, setBusy] = useState(false);
   const [configured, setConfigured] = useState<boolean | null>(null);
+  const [availabilityNote, setAvailabilityNote] = useState("");
   const [result, setResult] = useState<AssistResult | null>(null);
   const [draft, setDraft] = useState("");
   const [category, setCategory] = useState<Category>("geral");
@@ -55,7 +56,7 @@ export function AssistantView({ today }: { today: Date }) {
         if (active) setConfigured(value.configured);
       })
       .catch(() => {
-        if (active) setConfigured(false);
+        if (active) setAvailabilityNote("Não foi possível saber se o assistente está disponível.");
       });
     return () => {
       active = false;
@@ -181,18 +182,19 @@ export function AssistantView({ today }: { today: Date }) {
             <h2 className="font-serif text-2xl font-medium">Leitura para o professor revisar</h2>
           </div>
           <span className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted">
-            {origin === "demo" ? "Sala de demonstração" : "Registros deste aparelho"}
+            {origin === "demo" ? "Sala de demonstração" : "Registros da conta"}
           </span>
         </div>
         <p className="text-sm text-muted">
-          O texto gerado não é salvo sozinho e não altera nota nem frequência. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta.
+          A leitura sai só para você revisar. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta. O pedido segue com o nome mascarado e só com o recorte do período.
         </p>
         <p className="text-sm text-muted">
-          Não há login. A checagem de mesma origem não identifica o professor. Não registre dados reais de alunos num endereço público: eles ficam só neste navegador e se perdem ao trocar de aparelho.
+          O texto gerado não é salvo sozinho e não altera nota nem frequência. Login identifica a conta, mas não impede o modelo de errar. Não trate a leitura como parecer oficial.
         </p>
         {configured === false ? (
           <p className="text-sm text-muted">GEMINI_API_KEY não está definida neste ambiente.</p>
         ) : null}
+        {availabilityNote ? <p className="text-sm text-muted">{availabilityNote}</p> : null}
         <div className="grid gap-2 sm:grid-cols-2">
           {ACTIONS.map((item) => (
             <button
@@ -307,7 +309,7 @@ function Review({
         {result.demonstrative ? <span className="text-xs font-medium text-muted">Base fictícia de demonstração</span> : null}
       </div>
       <div>
-        <h3 className="text-sm font-medium">Fatos calculados neste aparelho</h3>
+        <h3 className="text-sm font-medium">Fatos calculados a partir dos registros</h3>
         <ul className="mt-1 list-disc pl-5 text-sm text-muted">
           {result.facts.map((item) => <li key={item}>{item}</li>)}
         </ul>
@@ -364,7 +366,7 @@ function Review({
         <Button onClick={onSave} disabled={!draft.trim()}>Salvar como observação</Button>
         <Button variant="ghost" onClick={onExport} disabled={!draft.trim()}>Exportar texto</Button>
       </div>
-      {saved ? <p className="text-sm">Observação guardada neste aparelho. Notas e frequência não mudaram.</p> : null}
+      {saved ? <p className="text-sm">Observação guardada na sua conta. Notas e frequência não mudaram.</p> : null}
     </Panel>
   );
 }

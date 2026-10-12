@@ -1,5 +1,5 @@
-import { a as getRequest } from "./ssr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/isolation.server-DdG3f88r.js
+import { o as getRequest } from "./ssr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/isolation.server-CGNg1r0B.js
 /**
 * Fetch-Metadata sibling isolation — **server-only** (`.server.ts` suffix).
 *
@@ -41,4 +41,4 @@ function assertSameSiteRequest() {
 	throw new CrossSiteRequestError();
 }
 //#endregion
-export { CrossSiteRequestError, assertSameSiteRequest };
+export { assertSameSiteRequest };

@@ -1,7 +1,7 @@
 import { d as fmtScore, g as inRange, h as frequency, s as categoryLabel, t as AI_TAGS, v as mean } from "./insights-DdMgi_fN.mjs";
-import { a as object, i as number, n as array, o as string, t as _enum } from "../_libs/zod.mjs";
+import { cn as _enum, gn as object, hn as number, un as array, yn as string } from "../_libs/@better-auth/core+[...].mjs";
 import { t as GoogleGenAI } from "../_libs/@google/genai.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ai.server--nofuska.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ai.server-BV8p-VwI.js
 var STORED_CATEGORIES = [
 	"participacao",
 	"comportamento",
@@ -193,7 +193,7 @@ function dossierForModel(input, sheet) {
 		aluno: TOKEN,
 		turma: input.student.className,
 		componente: input.student.subject,
-		origem: input.origin === "demo" ? "dados fictícios de demonstração" : "registros locais do aparelho",
+		origem: input.origin === "demo" ? "dados fictícios de demonstração" : "registros da conta do professor",
 		periodo: input.period,
 		periodoComparado: input.action === "evolucao" ? input.comparePeriod ?? null : null,
 		fatosCalculadosPeloSistema: sheet.facts.map(mask),

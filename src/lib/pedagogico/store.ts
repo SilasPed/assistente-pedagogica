@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { normalizePedData, restoreDemoData } from "@/lib/pedagogico/origins";
+import { restoreDemoData } from "@/lib/pedagogico/origins";
 import { createSeed } from "@/lib/pedagogico/seed";
+import { emptyPedData } from "@/lib/pedagogico/workspace";
 import type {
   Attendance,
   Exam,
@@ -24,6 +24,7 @@ type Store = PedData & {
   removeExam: (id: string) => void;
   addStudent: (classId: string, name: string) => void;
   resetDemo: () => void;
+  replaceAll: (data: PedData) => void;
 };
 
 function id() {
@@ -34,10 +35,8 @@ function originForStudent(state: PedData, studentId: string): RecordOrigin {
   return state.students.find((student) => student.id === studentId)?.origin ?? "local";
 }
 
-export const usePedStore = create<Store>()(
-  persist(
-    (set) => ({
-      ...createSeed(new Date()),
+export const usePedStore = create<Store>()((set) => ({
+  ...emptyPedData(),
       addObservation: (input) =>
         set((state) => ({
           observations: [
@@ -118,23 +117,15 @@ export const usePedStore = create<Store>()(
         }));
       },
       resetDemo: () => set((state) => restoreDemoData(state, createSeed(new Date()))),
+      replaceAll: (data) =>
+        set({
+          classes: data.classes,
+          students: data.students,
+          observations: data.observations,
+          grades: data.grades,
+          attendance: data.attendance,
+          exams: data.exams,
+          pendings: data.pendings,
+        }),
     }),
-    {
-      name: "acompanhamento-pedagogico-v1",
-      skipHydration: true,
-      partialize: (state) => ({
-        classes: state.classes,
-        students: state.students,
-        observations: state.observations,
-        grades: state.grades,
-        attendance: state.attendance,
-        exams: state.exams,
-        pendings: state.pendings,
-      }),
-      merge: (persisted, current) => ({
-        ...current,
-        ...normalizePedData(persisted as Partial<PedData> | null),
-      }),
-    },
-  ),
 );

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from "react";
+import { ReportPanel } from "@/components/pedagogico/report-view";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
 import {
   defaultPeriodKey,
@@ -6,12 +7,14 @@ import {
   formatRange,
   fmtScore,
   inRange,
+  isoDate,
   mean,
   periodOptions,
   previousPeriod,
   resolvePeriod,
 } from "@/lib/pedagogico/dates";
 import { frequency, summarizeClass, summarizeStudent } from "@/lib/pedagogico/insights";
+import { buildReportDraft } from "@/lib/pedagogico/report";
 import { usePedStore } from "@/lib/pedagogico/store";
 import { categoryLabel } from "@/lib/pedagogico/types";
 
@@ -21,18 +24,23 @@ export function ConsultView({
   today,
   classId,
   studentId,
+  teacher,
+  place,
   onClassId,
   onStudentId,
 }: {
   today: Date;
   classId: string;
   studentId: string;
+  teacher: string;
+  place: string;
   onClassId: (id: string) => void;
   onStudentId: (id: string) => void;
 }) {
   const data = usePedStore();
   const [periodKey, setPeriodKey] = useState(defaultPeriodKey(today));
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [showReport, setShowReport] = useState(false);
   const period = resolvePeriod(periodKey, today);
   const prior = previousPeriod(period);
   const options = periodOptions(today);
@@ -135,6 +143,23 @@ export function ConsultView({
           })),
       ].sort((a, b) => b.date.localeCompare(a.date))
     : [];
+
+  const reportDraft = student
+    ? buildReportDraft({
+        studentName: student.name,
+        className: room.name,
+        subject: room.subject,
+        teacher,
+        place,
+        today: isoDate(today),
+        periodLabel: period.label,
+        periodStart: period.start,
+        periodEnd: period.end,
+        observations: data.observations.filter((row) => row.studentId === student.id),
+        grades: data.grades.filter((row) => row.studentId === student.id),
+        attendance: data.attendance.filter((row) => row.studentId === student.id),
+      })
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -279,6 +304,20 @@ export function ConsultView({
           </ul>
         </Panel>
       )}
+      {student && reportDraft ? (
+        <div className="flex flex-col gap-3">
+          <Button variant="ghost" onClick={() => setShowReport((open) => !open)}>
+            {showReport ? "Fechar parecer" : "Parecer em Word"}
+          </Button>
+          {showReport ? (
+            <ReportPanel
+              key={`${student.id}-${period.start}-${period.end}`}
+              initial={reportDraft}
+              onRebuild={() => reportDraft}
+            />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

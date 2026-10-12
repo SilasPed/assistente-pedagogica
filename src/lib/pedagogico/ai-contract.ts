@@ -218,7 +218,7 @@ export function dossierForModel(input: AssistInput, sheet: FactSheet) {
     aluno: TOKEN,
     turma: input.student.className,
     componente: input.student.subject,
-    origem: input.origin === "demo" ? "dados fictícios de demonstração" : "registros locais do aparelho",
+    origem: input.origin === "demo" ? "dados fictícios de demonstração" : "registros da conta do professor",
     periodo: input.period,
     periodoComparado: input.action === "evolucao" ? (input.comparePeriod ?? null) : null,
     fatosCalculadosPeloSistema: sheet.facts.map(mask),

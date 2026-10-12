@@ -1,55 +1,79 @@
 # Acompanhamento Pedagógico
 
-Aplicativo para o professor registrar observações, notas e frequência, consultar por turma, aluno e período, e pedir ao Gemini uma leitura para revisar. A IA não grava nada sozinha e não altera nota nem frequência.
+Aplicativo para o professor entrar na própria conta, registrar observações, notas e frequência, consultar por turma, aluno e período, exportar um parecer individual em Word e pedir ao Gemini uma leitura para revisar. A IA não grava nada sozinha e não altera nota nem frequência.
 
-## O que permanece local
+## O que já estava no código
 
-Não há login, banco compartilhado nem backup. Observações, notas, frequência, provas e pendências ficam no `localStorage` do navegador, na chave `acompanhamento-pedagogico-v1`. Trocar de navegador, aparelho ou limpar os dados do site apaga essa cópia. Não existe sincronização.
+`better-auth`, `pg` e `kysely` já vinham instalados. Não foi adicionado Supabase nem um segundo login.
 
-A sala inicial (7º A e 8º B, com alunos como Alice Moreira) é fictícia e marcada como demonstração. Um aluno incluído por você fica marcado como registro deste aparelho. O assistente recusa um pedido que misture os dois. Restaurar o exemplo recria só a sala fictícia e mantém alunos, observações, notas e frequência incluídos por você. Uma edição feita num aluno da demonstração volta ao exemplo.
+Até esta etapa a autenticação estava desligada: `.grok/app-env.json` tinha `VITE_AUTH_ENABLED` igual a `false` e `deploy.database` igual a `false`. Sem a chave `false`, o Better Auth que já existia em `src/lib/auth` passa a valer. `kysely` continua só como adaptador dessa sessão. Os registros da sala usam o SQL de `src/lib/db.ts` (`pg` quando existe `DATABASE_URL`, PGLite em memória quando não existe).
 
-Quem já usava o aplicativo continua com os registros: a abertura completa a origem que faltava, sem descartar o que estava salvo.
+## Conta e banco
 
-Isto não está pronto para dados reais de alunos num endereço público. A checagem de mesma origem impede um site vizinho de chamar o servidor, mas não identifica o professor e não substitui autenticação. Qualquer pessoa que abra o aplicativo neste navegador vê os registros. Uma etapa futura, ainda não implementada, precisa trazer login, autorização, banco e backup antes de uso institucional.
+O professor entra com e-mail e senha (mínimo de 8 caracteres) ou com Google e X, os métodos já ligados pelo Better Auth. Cada chamada que lê ou grava a sala exige sessão. O `user_id` vem dessa sessão, nunca de um campo enviado pelo navegador.
+
+Há duas tabelas próprias, além do esquema do Better Auth:
+
+- `ped_workspace`: um JSON com turmas, alunos, observações, notas, frequência, provas e pendências daquele professor.
+- `teacher_profile`: nome e local usados no parecer. Começam vazios. O aplicativo não inventa cidade.
+
+A sala fictícia só entra se o professor tocar em “Carregar sala fictícia” ou em “Restaurar exemplo”. O exemplo continua marcado como demonstração. Aluno incluído pelo professor fica como registro da conta.
+
+Se este navegador ainda tiver a chave antiga `acompanhamento-pedagogico-v1`, aparece um aviso. A cópia só substitui a conta se o professor confirmar. Depois de gravar, a chave é apagada. “Agora não” deixa a chave onde está.
+
+Trocar de professor limpa a tela antes de abrir a outra conta. Um teste automatizado grava dois professores num Postgres embutido e confere que um não lê o documento do outro. Isso não exercita o Neon de produção.
+
+Na pré-visualização o banco é PGLite em memória: reiniciar o processo apaga contas e registros. No endereço publicado, `DATABASE_URL` aponta para o Postgres (Neon) injetado na publicação. Não houve teste de backup pontual desse Postgres, nem de restauração. A cópia JSON em Turmas é um arquivo que o professor baixa e guarda. Não é backup do servidor.
+
+O parecer em Word também é um arquivo local. A pré-visualização é editável. Baixar não altera as observações salvas.
+
+## Parecer em Word
+
+Em Consultar, com um aluno escolhido, “Parecer em Word” monta o documento a partir das observações, notas e frequência daquele período. O cabeçalho é `ESCOLA CIDADÃ INTEGRAL TÉCNICA ERENICE CAVALCANTE FIDELES`. O quadro traz estudante, turma, componente, professor e período.
+
+As seções saem só do que está registrado:
+
+- participação → aspectos comunicativos
+- comportamento → aspectos emocionais e comportamentais
+- evolução → avanços observados
+- observação geral → observação geral
+- dificuldades com leitura, escrita ou concentração → o item correspondente
+- outras dificuldades → outros registros
+- causa só se o texto tiver “porque”, “devido”, “motivo” ou “causa”
+- intervenção e estratégia só se o texto nomear isso
+
+Sem registro, a seção fica `Não observado no período`. Média e frequência são contas feitas aqui, em separado, e não são tratadas como causa. Texto fora do período não entra. Nome e local do professor ficam em branco até alguém preencher. A data é a data do documento.
 
 ## Assistente e Gemini
 
-As chamadas saem só do servidor, com o SDK `@google/genai`. O navegador envia o recorte do período, já separado por origem. Antes do pedido, o nome completo e cada parte com mais de duas letras são trocados por `[[A1]]`, sem diferenciar maiúsculas. Ids internos, como `att-alice-...`, não são enviados: a evidência citada usa `e1`, `e2` e só volta se o modelo repetir um desses ids. Registros fora do período pedido não entram no dossiê. Na organização, só o texto digitado é enviado.
+As chamadas saem só do servidor, com o SDK `@google/genai`, e agora exigem a sessão do professor. O navegador envia o recorte do período, já separado por origem. Antes do pedido, o nome completo e cada parte com mais de duas letras são trocados por `[[A1]]`, sem diferenciar maiúsculas. Ids internos não são enviados: a evidência citada usa `e1`, `e2`. Registros fora do período pedido não entram no dossiê. Na organização, só o texto digitado é enviado.
 
 O mascaramento não cobre apelido, erro de digitação, iniciais, nome de outra pessoa escrito no mesmo texto, nem palavra de uma ou duas letras. Turma e componente seguem por extenso.
 
-O servidor não guarda o dossiê. Há um limite de 8 análises a cada 10 minutos por IP confiável (`x-real-ip`) e um teto de 40 na mesma janela para o processo. O contador fica na memória da instância: outro processo, um novo deploy ou uma instância fria começa do zero. Por isso o limite não é uma trava global e não é controle de acesso. O cabeçalho `x-forwarded-for` enviado pelo cliente não escolhe o endereço. O tempo máximo de uma chamada é 20 segundos.
+O servidor não guarda o dossiê do Gemini. Há um limite de 8 análises a cada 10 minutos por IP confiável (`x-real-ip`) e um teto de 40 na mesma janela para o processo. O contador fica na memória da instância: outro processo começa do zero. Não é trava global nem controle de acesso. O tempo máximo de uma chamada é 20 segundos.
 
 Texto inválido, chave ausente, chave recusada, cota esgotada, tempo esgotado ou período sem registros devolve uma mensagem curta. A chave e o corpo do provedor não entram nessa mensagem. Sem `GEMINI_API_KEY`, nada é inventado no lugar da resposta.
 
-Ações:
+Ações: organizar observação, gerar parecer para revisar, analisar evolução, sugerir intervenções. Fatos de média e frequência são calculados aqui. A leitura do modelo pode, ainda assim, escrever um número que não está nos fatos. Só “Salvar como observação” grava, e grava só o texto editado.
 
-- Organizar observação: uma frase ou transcrição vira um texto objetivo, com categorias sugeridas.
-- Gerar parecer: leitura individual do período, só se houver observação, nota ou frequência.
-- Analisar evolução: compara o período escolhido com o anterior. Se um deles estiver vazio, isso é dito e nada é inventado.
-- Sugerir intervenções: ideias práticas para o professor decidir. Não são decisão automática.
-
-Fatos de média e frequência são calculados aqui. A leitura do modelo aparece separada e pode, ainda assim, escrever um número que não está nos fatos: o professor confere os dois. Só o botão "Salvar como observação" grava, e grava só o texto editado. Nota e frequência não são alteradas.
-
-O modelo padrão é o alias `gemini-flash-latest`, substituível por `GEMINI_MODEL`. O formato pedido é JSON Schema via `responseJsonSchema` (`type`, `properties`, `required`, `additionalProperties`, `enum`). A documentação pública de modelos cita esse alias; a página específica do alias não existe e, neste ambiente, não houve chamada real para confirmar se o alias responde e aceita o esquema.
+O modelo padrão é o alias `gemini-flash-latest`, substituível por `GEMINI_MODEL`. Neste ambiente não houve chamada real à API para confirmar o alias nem o esquema JSON.
 
 ## Configuração
 
-```bash
-npm install
-cp .env.example .env
-```
+Não commite um `.env` com segredo.
 
-No `.env` local, que não deve ser commitado:
+Gemini, só no servidor (sem prefixo `VITE_`):
 
 ```
 GEMINI_API_KEY=sua-chave
 GEMINI_MODEL=gemini-flash-latest
 ```
 
-`GEMINI_MODEL` é opcional. Não use prefixo `VITE_`: isso publicaria o valor no navegador.
+`GEMINI_MODEL` é opcional. Na Vercel, em Project Settings → Environment Variables, crie `GEMINI_API_KEY` e, se quiser, `GEMINI_MODEL`, e publique de novo.
 
-Na Vercel, em Project Settings → Environment Variables, crie `GEMINI_API_KEY` e, se quiser outro modelo, `GEMINI_MODEL`. Faça um novo deploy depois de salvar. O limite de uso da chave continua por instância.
+Banco e sessão no endereço publicado: a plataforma injeta `DATABASE_URL` e os segredos do Better Auth quando o banco da publicação está ligado. Não copie esses valores para o frontend. Não há variável `VITE_` de autenticação para ligar: a ausência de `VITE_AUTH_ENABLED=false` é o que liga o login.
+
+Na pré-visualização incorporada, o cookie pode não permanecer. Google ou X abrem o fluxo que guarda a sessão. E-mail e senha funcionam melhor quando o aplicativo é a janela principal, não um quadro embutido. Isso não foi revalidado com um navegador externo nesta entrega.
 
 ## Executar
 
@@ -61,12 +85,14 @@ npm test
 npm run build
 ```
 
-O desenvolvimento escuta em `http://127.0.0.1:8080`.
-
 ## Privacidade
 
-O Google recebe o dossiê mascarado: turma, componente, período, fatos já calculados, evidências do período e, na organização, o texto digitado. Não recebe a chave de volta. A política e a retenção do provedor estão em [Gemini API terms](https://ai.google.dev/gemini-api/terms) e [Google Privacy Policy](https://policies.google.com/privacy). Este projeto não mantém cópia desse pedido no servidor.
+O Google recebe o dossiê mascarado quando o professor pede uma leitura: turma, componente, período, fatos já calculados, evidências do período e, na organização, o texto digitado. A política do provedor está em [Gemini API terms](https://ai.google.dev/gemini-api/terms) e [Google Privacy Policy](https://policies.google.com/privacy). Este projeto não guarda cópia desse pedido.
+
+Os registros da sala ficam no Postgres da conta. Quem não entrou não recebe o JSON. Isso não substitui política da escola, termo de uso nem backup testado.
 
 ## Limites
 
-O modelo pode errar mesmo com o dossiê restrito. A leitura não é parecer oficial, diagnóstico nem causa. Se o período não tiver registros, a análise para e diz o que falta. Sem login e sem cópia fora do navegador, o aplicativo não serve para guarda institucional de dados reais.
+O modelo pode errar. A leitura da IA e o Word editado pelo professor não são diagnóstico. Sem registro, o texto diz o que falta.
+
+O teste de isolamento usa Postgres embutido no processo do teste. Não foi testado backup nem restauração do Neon. A pré-visualização perde o banco ao reiniciar. O limite do Gemini continua por instância. A chave Gemini não foi chamada de verdade aqui.
