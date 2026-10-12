@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { pedDataFromUnknown } from "@/lib/pedagogico/workspace";
+import { hasLocalOrigin, TEST_PUBLICATION } from "@/lib/pedagogico/test-publication";
 
 const MAX_CHARS = 1_500_000;
 
@@ -35,6 +36,12 @@ export const saveWorkspace = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const parsed = pedDataFromUnknown(data);
     if (!parsed) return { ok: false as const, message: "Os registros não puderam ser guardados." };
+    if (TEST_PUBLICATION && hasLocalOrigin(parsed)) {
+      return {
+        ok: false as const,
+        message: "Esta versão de teste só guarda a sala fictícia. Nada real foi salvo.",
+      };
+    }
     const json = JSON.stringify(parsed);
     if (json.length > MAX_CHARS) return { ok: false as const, message: "Os registros passam do tamanho aceito." };
     const { getSql } = await import("@/lib/db");

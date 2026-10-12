@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { GROK_PROVIDERS, authClient, signIn } from "@/lib/auth/client";
 import { Button, controlClassName } from "@/components/pedagogico/ui";
+import { TestBanner } from "@/components/pedagogico/test-banner";
 
 export function TeacherLogin() {
   const [name, setName] = useState("");
@@ -27,14 +28,16 @@ export function TeacherLogin() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-4 px-4 py-10">
+    <div className="min-h-dvh">
+      <TestBanner />
+      <main className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col justify-center gap-4 px-4 py-10">
       <div>
         <p className="text-sm font-medium text-muted">Sala de aula</p>
         <h1 className="display-title mt-1">
           Acompanhamento <span className="italic">pedagógico</span>
         </h1>
         <p className="mt-3 text-sm text-muted">
-          Entre com a conta do professor. Sem login, os registros dos alunos não abrem e não vão para o servidor.
+          Entre para testar com a sala fictícia. Sem login, os exemplos não abrem. Não cadastre aluno real.
         </p>
       </div>
       <form className="panel flex flex-col gap-3 p-4" onSubmit={(event) => void submit(event)}>
@@ -73,5 +76,6 @@ export function TeacherLogin() {
         ))}
       </div>
     </main>
+    </div>
   );
 }

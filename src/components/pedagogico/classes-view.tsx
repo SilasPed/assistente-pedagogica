@@ -3,6 +3,7 @@ import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogic
 import { defaultPeriodKey, fmtScore, inRange, mean, resolvePeriod } from "@/lib/pedagogico/dates";
 import { frequency } from "@/lib/pedagogico/insights";
 import { usePedStore } from "@/lib/pedagogico/store";
+import { TEST_PUBLICATION } from "@/lib/pedagogico/test-publication";
 import { legacyStateFromJson, pedDataFromUnknown, snapshotPed } from "@/lib/pedagogico/workspace";
 import { saveWorkspace } from "@/lib/pedagogico/workspace.functions";
 
@@ -117,17 +118,22 @@ export function ClassesView({
               className="flex flex-col gap-2 sm:flex-row"
               onSubmit={(event) => {
                 event.preventDefault();
+                if (TEST_PUBLICATION) {
+                  setBackupNote("Esta versão de teste não inclui aluno novo. Use só a sala fictícia.");
+                  return;
+                }
                 data.addStudent(room.id, names[room.id] ?? "");
                 setNames((current) => ({ ...current, [room.id]: "" }));
               }}
             >
               <input
                 className={controlClassName()}
-                placeholder="Nome do novo aluno"
+                placeholder={TEST_PUBLICATION ? "Aluno novo desligado nesta versão de teste" : "Nome do novo aluno"}
                 value={names[room.id] ?? ""}
+                disabled={TEST_PUBLICATION}
                 onChange={(event) => setNames((current) => ({ ...current, [room.id]: event.target.value }))}
               />
-              <Button type="submit" className="shrink-0">
+              <Button type="submit" className="shrink-0" disabled={TEST_PUBLICATION}>
                 Incluir aluno
               </Button>
             </form>
@@ -137,15 +143,19 @@ export function ClassesView({
 
       <div className="flex flex-col items-start gap-3 px-1">
         <p className="text-sm text-muted">
-          Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. A cópia em JSON é um arquivo que você guarda. Não é um backup testado do servidor: na pré-visualização o banco some ao reiniciar.
+          {TEST_PUBLICATION
+            ? "Nesta versão de teste só vale a sala fictícia. Restaurar arquivo e incluir aluno estão desligados, para não entrar dado real."
+            : "Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. A cópia em JSON é um arquivo que você guarda. Não é um backup testado do servidor: na pré-visualização o banco some ao reiniciar."}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button variant="ghost" onClick={downloadBackup}>
             Baixar cópia JSON
           </Button>
-          <Button variant="ghost" onClick={() => fileRef.current?.click()}>
-            Restaurar cópia JSON
-          </Button>
+          {TEST_PUBLICATION ? null : (
+            <Button variant="ghost" onClick={() => fileRef.current?.click()}>
+              Restaurar cópia JSON
+            </Button>
+          )}
           <input
             ref={fileRef}
             type="file"

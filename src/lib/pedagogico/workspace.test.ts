@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "../db.ts";
-import { legacyStateFromJson, pedDataFromUnknown, pedHasRows } from "./workspace.ts";
+import { legacyStateFromJson, pedDataFromUnknown, pedHasRows, emptyPedData } from "./workspace.ts";
+import { hasLocalOrigin } from "./test-publication.ts";
 import {
   readTeacherProfile,
   readWorkspaceJson,
@@ -46,6 +47,8 @@ describe("cópia antiga do navegador", () => {
     });
     assert.ok(empty);
     assert.equal(pedHasRows(empty), false);
+    assert.equal(hasLocalOrigin(emptyPedData()), false);
+    assert.equal(wrapped !== null && hasLocalOrigin(wrapped), true);
   });
 });
 

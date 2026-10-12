@@ -2,6 +2,10 @@
 
 Aplicativo para o professor entrar na própria conta, registrar observações, notas e frequência, consultar por turma, aluno e período, exportar um parecer individual em Word e pedir ao Gemini uma leitura para revisar. A IA não grava nada sozinha e não altera nota nem frequência.
 
+## Versão de teste
+
+A faixa fixa no topo diz que esta publicação é de teste e não deve receber aluno real. O servidor recusa gravar registro de origem local: só a sala fictícia é aceita. Incluir aluno, importar a cópia antiga do navegador e restaurar um JSON estão desligados. Criar a conta e gerar o parecer de um aluno da sala fictícia continuam disponíveis.
+
 ## O que já estava no código
 
 `better-auth`, `pg` e `kysely` já vinham instalados. Não foi adicionado Supabase nem um segundo login.

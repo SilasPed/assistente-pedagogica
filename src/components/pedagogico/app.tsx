@@ -5,11 +5,13 @@ import { ClassesView } from "@/components/pedagogico/classes-view";
 import { ConsultView } from "@/components/pedagogico/consult-view";
 import { HomeView } from "@/components/pedagogico/home-view";
 import { TeacherLogin } from "@/components/pedagogico/teacher-login";
+import { TestBanner } from "@/components/pedagogico/test-banner";
 import { Button, controlClassName } from "@/components/pedagogico/ui";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { formatLong, isoDate } from "@/lib/pedagogico/dates";
 import { createSeed } from "@/lib/pedagogico/seed";
+import { TEST_PUBLICATION } from "@/lib/pedagogico/test-publication";
 import { usePedStore } from "@/lib/pedagogico/store";
 import type { PedData } from "@/lib/pedagogico/types";
 import {
@@ -42,12 +44,15 @@ export function PedagogicoApp() {
 
 function LoadingShell({ label }: { label: string }) {
   return (
-    <main className="mx-auto min-h-dvh max-w-5xl px-4 py-8">
-      <p className="text-sm font-medium text-muted">Sala de aula</p>
-      <h1 className="display-title mt-1">
-        Acompanhamento <span className="italic">pedagógico</span>
-      </h1>
-      <p className="mt-3 text-sm text-muted">{label}</p>
+    <main className="mx-auto min-h-dvh max-w-5xl">
+      <TestBanner />
+      <div className="px-4 py-8">
+        <p className="text-sm font-medium text-muted">Sala de aula</p>
+        <h1 className="display-title mt-1">
+          Acompanhamento <span className="italic">pedagógico</span>
+        </h1>
+        <p className="mt-3 text-sm text-muted">{label}</p>
+      </div>
     </main>
   );
 }
@@ -231,6 +236,7 @@ function ReadyApp({
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
+      <TestBanner />
       <header className="mx-auto flex w-full max-w-5xl flex-col px-4 pt-6 md:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -246,7 +252,7 @@ function ReadyApp({
           </div>
         </div>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          Os registros ficam na conta de quem entrou. A cópia em JSON, em Turmas, é um arquivo seu — não é um backup automático do servidor.
+          Conta de teste. Carregue a sala fictícia e gere o parecer dela. Não use aluno real.
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-sm">
@@ -299,7 +305,7 @@ function ReadyApp({
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 pt-5 pb-28 md:px-8 md:pb-16">
-        {legacy ? (
+        {legacy && !TEST_PUBLICATION ? (
           <section className="panel flex flex-col gap-2 p-4">
             <p className="text-sm">
               Este navegador ainda tem uma cópia antiga dos registros. Ela não entra sozinha. Importar substitui o que está nesta conta.
@@ -310,6 +316,13 @@ function ReadyApp({
                 Agora não
               </Button>
             </div>
+          </section>
+        ) : null}
+        {legacy && TEST_PUBLICATION ? (
+          <section className="panel p-4">
+            <p className="text-sm">
+              Este navegador tem uma cópia antiga. Esta versão de teste não a importa, para não misturar dado real com a sala fictícia.
+            </p>
           </section>
         ) : null}
         {classCount === 0 ? (
