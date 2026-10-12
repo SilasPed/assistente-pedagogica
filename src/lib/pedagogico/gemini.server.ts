@@ -61,10 +61,10 @@ export function geminiAttemptPlan(configured: string | undefined): GeminiAttempt
   const useChain = !raw || RETIRED_MODELS.has(raw) || UNSTABLE_ALIASES.has(raw) || preferred === ALIAS_MODEL;
   if (!useChain) return [{ model: preferred, thinking: thinkingFor(preferred) }];
   return [
-    { model: ALIAS_MODEL, thinking: "none" },
     { model: "gemini-3.5-flash-lite", thinking: "none" },
-    { model: "gemini-3.6-flash", thinking: "none" },
-    { model: "gemini-3.8-flash", thinking: "none" },
+    { model: "gemini-3.6-flash", thinking: "low" },
+    { model: "gemini-3.8-flash", thinking: "low" },
+    { model: ALIAS_MODEL, thinking: "low" },
   ];
 }
 
@@ -146,6 +146,7 @@ export async function firstGeminiText(
     } catch (error) {
       last = error;
       trace.push(traceLabel(attempt.model, error, false));
+      if (isTimeout(error)) continue;
       if (!geminiFailureShouldFallback(error)) throw withDetail(error, trace);
       if (attempt.thinking !== "none") {
         try {
@@ -161,9 +162,19 @@ export async function firstGeminiText(
   throw withDetail(last ?? new GeminiCallError("unavailable"), trace);
 }
 
+function isTimeout(error: unknown) {
+  return error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError");
+}
+
 function traceLabel(model: string, error: unknown, relaxed: boolean) {
   const status = statusOf(error);
-  const code = error instanceof GeminiCallError ? error.code : status ? `http-${status}` : "erro";
+  const code = isTimeout(error)
+    ? "tempo"
+    : error instanceof GeminiCallError
+      ? error.code
+      : status
+        ? `http-${status}`
+        : "erro";
   return `${model}${relaxed ? " sem-raciocinio" : ""} ${code}`;
 }
 
@@ -192,43 +203,35 @@ export async function generateGeminiJson(args: {
 
   try {
     return await firstGeminiText(attempts, async (attempt, relaxThinking) => {
-      try {
+      const budget = attempt.model === ALIAS_MODEL ? 22_000 : 14_000;
+      const signal =
+        typeof AbortSignal.any === "function" ? AbortSignal.any([args.signal, AbortSignal.timeout(budget)]) : args.signal;
+      const config = {
+        systemInstruction: args.system,
+        temperature: 0.2,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+        responseJsonSchema: args.schema,
+        abortSignal: signal,
+        ...geminiThinkingConfig(relaxThinking ? "none" : attempt.thinking),
+      };
+      const once = async () => {
         const response = await ai.models.generateContent({
           model: attempt.model,
           contents: args.user,
-          config: {
-            systemInstruction: args.system,
-            temperature: 0.2,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json",
-            responseJsonSchema: args.schema,
-            abortSignal: args.signal,
-            ...geminiThinkingConfig(relaxThinking ? "none" : attempt.thinking),
-          },
+          config,
         });
         const text = geminiResponseText(response);
         if (!text) throw new GeminiCallError("unavailable");
         return text;
+      };
+      try {
+        return await once();
       } catch (error) {
         if (statusOf(error) === 404) rejectedModels.add(attempt.model);
         if ((statusOf(error) === 503 || statusOf(error) === 500) && !relaxThinking) {
           try {
-            const response = await ai.models.generateContent({
-              model: attempt.model,
-              contents: args.user,
-              config: {
-                systemInstruction: args.system,
-                temperature: 0.2,
-                maxOutputTokens: 8192,
-                responseMimeType: "application/json",
-                responseJsonSchema: args.schema,
-                abortSignal: args.signal,
-                ...geminiThinkingConfig(relaxThinking ? "none" : attempt.thinking),
-              },
-            });
-            const text = geminiResponseText(response);
-            if (!text) throw new GeminiCallError("unavailable");
-            return text;
+            return await once();
           } catch (retryError) {
             if (statusOf(retryError) === 404) rejectedModels.add(attempt.model);
             throw retryError;

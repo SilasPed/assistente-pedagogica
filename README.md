@@ -60,7 +60,7 @@ Texto inválido, chave ausente, chave recusada, cota esgotada, tempo esgotado ou
 
 Ações: organizar observação, gerar parecer para revisar, analisar evolução, sugerir intervenções. Fatos de média e frequência são calculados aqui. A leitura do modelo pode, ainda assim, escrever um número que não está nos fatos. Só “Salvar como observação” grava, e grava só o texto editado.
 
-O primeiro pedido usa `gemini-flash-latest`, com até 8192 tokens de saída e 45 segundos. Na publicação de teste, `gemini-2.5-flash` respondeu HTTP 404, então esse id não é mais o padrão. Se o alias vier 503 ou vazio, a mesma análise tenta `gemini-3.5-flash-lite`, `gemini-3.6-flash` e `gemini-3.8-flash`. O alias com teto de 1200 tokens e 20 segundos estourava o tempo na organização e devolvia texto vazio no parecer e na evolução, porque o raciocínio padrão consumia a saída. Outro nome em `GEMINI_MODEL`, que não seja esses dois, é respeitado.
+O primeiro pedido usa `gemini-3.5-flash-lite`, com até 8192 tokens e no máximo 14 segundos. Na publicação de teste, `gemini-2.5-flash` respondeu HTTP 404 e `gemini-flash-latest` passou de 45 segundos na organização, porque o raciocínio padrão consome a saída. Se o lite falhar, a mesma análise tenta `gemini-3.6-flash`, `gemini-3.8-flash` e, por último, o alias com nível de raciocínio baixo. Outro nome em `GEMINI_MODEL`, que não seja esses, é respeitado.
 
 ## Configuração
 
