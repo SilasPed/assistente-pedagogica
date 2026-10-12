@@ -4,8 +4,5 @@ node_modules/
 .env
 .env.*
 !.env.example
-.vercel/output/functions/__server.func/_libs/pglite.data
-.vercel/output/functions/__server.func/_libs/pglite.wasm
-.vercel/output/functions/__server.func/_libs/initdb.wasm
-
-
+# Produced by `npm run build`. Committing it made Vercel serve a stale prebuild.
+.vercel/output/

@@ -1,1 +1,0 @@
-import{t as e}from"./teacher-login-CALt2GKe.js";var t=e;export{t as component};
