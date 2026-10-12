@@ -1,27 +1,8 @@
 import { z } from "zod";
+import { AI_TAGS } from "./ai-tags.ts";
 import { fmtScore, inRange, mean } from "./dates.ts";
 import { frequency } from "./insights.ts";
 import { categoryLabel, type Category } from "./types.ts";
-
-export const AI_TAGS = [
-  "participacao",
-  "aprendizagem",
-  "autonomia",
-  "frequencia",
-  "interacao",
-  "atividades",
-  "acompanhamento",
-] as const;
-
-export const AI_TAG_LABELS: Record<(typeof AI_TAGS)[number], string> = {
-  participacao: "Participação",
-  aprendizagem: "Aprendizagem",
-  autonomia: "Autonomia",
-  frequencia: "Frequência",
-  interacao: "Interação",
-  atividades: "Cumprimento de atividades",
-  acompanhamento: "Pontos para acompanhar",
-};
 
 const STORED_CATEGORIES = ["participacao", "comportamento", "dificuldades", "evolucao", "geral"] as const;
 const originSchema = z.enum(["demo", "local"]);
@@ -105,12 +86,19 @@ export type FactSheet = {
 
 const TOKEN = "[[A1]]";
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function maskNames(text: string, name: string) {
-  const first = name.split(" ")[0] ?? name;
-  const ordered = [name, first].filter((part, index, list) => part.length > 2 && list.indexOf(part) === index);
+  const trimmed = name.trim();
+  const parts = trimmed.split(/\s+/).filter((part) => part.length > 2);
+  const needles = [...new Set([trimmed, ...parts])].filter((part) => part.length > 2);
+  needles.sort((a, b) => b.length - a.length);
   let masked = text;
-  for (const part of ordered.sort((a, b) => b.length - a.length)) {
-    masked = masked.split(part).join(TOKEN);
+  for (const part of needles) {
+    const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(part)}(?![\\p{L}\\p{N}])`, "giu");
+    masked = masked.replace(pattern, TOKEN);
   }
   return masked;
 }
@@ -133,19 +121,28 @@ export function buildFactSheet(input: AssistInput): FactSheet {
     ? input.attendance.filter((row) => inRange(row.date, input.comparePeriod!.start, input.comparePeriod!.end))
     : [];
 
+  const cited = (date: string) => {
+    if (inRange(date, input.period.start, input.period.end)) return true;
+    return Boolean(
+      input.action === "evolucao" &&
+        input.comparePeriod &&
+        inRange(date, input.comparePeriod.start, input.comparePeriod.end),
+    );
+  };
+
   const evidence: Evidence[] = [
-    ...input.observations.map((row) => ({
+    ...input.observations.filter((row) => cited(row.date)).map((row) => ({
       id: row.id,
       label: `${row.date} · ${categoryLabel(row.category as Category)}`,
       text: row.text,
     })),
-    ...input.grades.map((row) => ({
+    ...input.grades.filter((row) => cited(row.date)).map((row) => ({
       id: row.id,
       label: `${row.date} · ${row.title}`,
       text: `Nota registrada: ${fmtScore(row.score)}`,
     })),
     ...input.attendance
-      .filter((row) => row.status !== "presente")
+      .filter((row) => cited(row.date) && row.status !== "presente")
       .map((row) => ({
         id: row.id,
         label: `${row.date} · frequência`,
@@ -223,17 +220,30 @@ export function dossierForModel(input: AssistInput, sheet: FactSheet) {
     componente: input.student.subject,
     origem: input.origin === "demo" ? "dados fictícios de demonstração" : "registros locais do aparelho",
     periodo: input.period,
-    periodoComparado: input.comparePeriod ?? null,
+    periodoComparado: input.action === "evolucao" ? (input.comparePeriod ?? null) : null,
     fatosCalculadosPeloSistema: sheet.facts.map(mask),
     lacunas: sheet.missing,
     limitacoes: sheet.limits,
-    evidencias: sheet.evidence.map((item) => ({
-      id: item.id,
+    evidencias: sheet.evidence.map((item, index) => ({
+      id: `e${index + 1}`,
       rotulo: mask(item.label),
       texto: mask(item.text),
     })),
     textoOriginal: input.action === "organizar" ? mask(input.rawText?.trim() ?? "") : undefined,
   };
+}
+
+export function evidenceFromModelIds(sheet: FactSheet, ids: string[]) {
+  const byPublic = new Map(sheet.evidence.map((item, index) => [`e${index + 1}`, item]));
+  const seen = new Set<string>();
+  const picked: Evidence[] = [];
+  for (const id of ids) {
+    const item = byPublic.get(id);
+    if (!item || seen.has(item.id)) continue;
+    seen.add(item.id);
+    picked.push(item);
+  }
+  return picked;
 }
 
 export const organizeResponseSchema = {
@@ -275,10 +285,6 @@ export const analysisResultSchema = z.object({
   missing: z.array(z.string().trim().max(300)).max(8),
   limits: z.array(z.string().trim().max(300)).max(6),
 });
-
-export function knownEvidenceIds(sheet: FactSheet) {
-  return new Set(sheet.evidence.map((item) => item.id));
-}
 
 export const SYSTEM_PROMPT = [
   "Você ajuda um professor a organizar registros e a redigir uma leitura para ele revisar.",

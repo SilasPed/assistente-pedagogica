@@ -94,7 +94,9 @@ export function ClassesView({
       })}
 
       <div className="flex flex-col items-start gap-2 px-1">
-        <p className="text-sm text-muted">Os registros ficam neste aparelho.</p>
+        <p className="text-sm text-muted">
+          Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. Outro navegador não recebe cópia.
+        </p>
         <button
           type="button"
           className="text-sm font-medium text-muted"

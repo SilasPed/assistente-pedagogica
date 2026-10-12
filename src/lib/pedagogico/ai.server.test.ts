@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { dossierForModel, buildFactSheet, type AssistInput } from "./ai-contract.ts";
-import { GeminiCallError, classifyGeminiFailure } from "./gemini.server.ts";
-import { assistWith, resetAssistantRateLimit } from "./ai.server.ts";
+import { dossierForModel, buildFactSheet, maskNames, analysisResponseSchema, organizeResponseSchema, type AssistInput } from "./ai-contract.ts";
+import { GeminiCallError, classifyGeminiFailure, geminiFailureMessage } from "./gemini.server.ts";
+import { assistWith, rateKeyFromHeaders, resetAssistantRateLimit } from "./ai.server.ts";
 
 const period = { label: "3º bimestre", start: "2026-08-03", end: "2026-09-18" };
 const prior = { label: "2º bimestre", start: "2026-04-20", end: "2026-07-03" };
@@ -33,12 +33,12 @@ const okGenerate = async () =>
   JSON.stringify({
     reading: "[[A1]] manteve a participação descrita no registro.",
     suggestions: ["Pedir a [[A1]] que explique um exercício para a dupla."],
-    evidenceIds: ["obs-1", "inventado"],
+    evidenceIds: ["e1", "obs-1", "inventado"],
     missing: [],
     limits: ["Isto é uma leitura, não um diagnóstico."],
   });
 
-describe("assistWith", () => {
+describe("assistWith", { concurrency: 1 }, () => {
   it("recusa entrada inválida sem chamar o modelo", async () => {
     let calls = 0;
     const result = await assistWith(
@@ -145,6 +145,10 @@ describe("assistWith", () => {
       assert.equal(result.reading.includes("Alice Moreira"), true);
       assert.equal(result.reading.includes("[[A1]]"), false);
       assert.deepEqual(result.evidence.map((item) => item.id), ["obs-1"]);
+      assert.equal(JSON.stringify(result).includes("inventado"), false);
+      assert.equal(Object.hasOwn(result, "grades"), false);
+      assert.equal(Object.hasOwn(result, "attendance"), false);
+      assert.match(result.facts.join(" "), /8,0/);
     }
   });
 
@@ -168,5 +172,166 @@ describe("assistWith", () => {
     const error = new GeminiCallError("quota");
     assert.equal(error.code, "quota");
     assert.equal(error.message.includes("key"), false);
+  });
+
+  it("não copia o corpo do provedor para a mensagem", () => {
+    const secret = "AIza-CORPO-BRUTO";
+    assert.equal(classifyGeminiFailure({ status: 429, message: `quota ${secret}` }), "quota");
+    assert.equal(classifyGeminiFailure({ status: 403, message: secret }), "rejected");
+    assert.equal(classifyGeminiFailure({ status: 504, message: secret }), "timeout");
+    const aborted = new Error(`slow ${secret}`);
+    aborted.name = "AbortError";
+    assert.equal(classifyGeminiFailure(aborted), "timeout");
+    assert.equal(classifyGeminiFailure({ status: 500, message: secret }), "unavailable");
+    for (const code of ["quota", "rejected", "timeout", "unavailable"] as const) {
+      assert.equal(geminiFailureMessage(code).includes(secret), false);
+    }
+  });
+
+  it("não consome o limite quando a chave está ausente", async () => {
+    resetAssistantRateLimit();
+    let calls = 0;
+    for (let index = 0; index < 10; index += 1) {
+      const skipped = await assistWith(input(), {
+        apiKey: "",
+        generate: async () => {
+          calls += 1;
+          return "{}";
+        },
+        rateKey: "vazio",
+        now: 20_000,
+      });
+      assert.equal(skipped.ok, false);
+      if (!skipped.ok) assert.equal(skipped.code, "unconfigured");
+    }
+    const after = await assistWith(input(), { apiKey: "k", generate: okGenerate, rateKey: "vazio", now: 20_000 });
+    assert.equal(after.ok, true);
+    assert.equal(calls, 0);
+    resetAssistantRateLimit();
+  });
+
+  it("abre a janela de novo depois de dez minutos", async () => {
+    resetAssistantRateLimit();
+    for (let index = 0; index < 8; index += 1) {
+      const result = await assistWith(input(), { apiKey: "k", generate: okGenerate, rateKey: "janela", now: 30_000 });
+      assert.equal(result.ok, true);
+    }
+    const blocked = await assistWith(input(), { apiKey: "k", generate: okGenerate, rateKey: "janela", now: 30_000 });
+    assert.equal(blocked.ok, false);
+    const later = await assistWith(input(), {
+      apiKey: "k",
+      generate: okGenerate,
+      rateKey: "janela",
+      now: 30_000 + 10 * 60 * 1000,
+    });
+    assert.equal(later.ok, true);
+    resetAssistantRateLimit();
+  });
+
+  it("não deixa um endereço forjado multiplicar o limite da instância", async () => {
+    resetAssistantRateLimit();
+    let calls = 0;
+    const generate = async () => {
+      calls += 1;
+      return okGenerate();
+    };
+    for (let index = 0; index < 40; index += 1) {
+      const result = await assistWith(input(), { apiKey: "k", generate, rateKey: `ip:${index}`, now: 90_000 });
+      assert.equal(result.ok, true);
+    }
+    const blocked = await assistWith(input(), { apiKey: "k", generate, rateKey: "ip:novo", now: 90_000 });
+    assert.equal(blocked.ok, false);
+    if (!blocked.ok) assert.equal(blocked.code, "rate_limited");
+    assert.equal(calls, 40);
+    resetAssistantRateLimit();
+  });
+
+  it("recusa JSON inválido sem devolver a chave", async () => {
+    const secret = "AIza-NAO-ECOAR";
+    const result = await assistWith(input(), {
+      apiKey: secret,
+      generate: async () => `não é json ${secret}`,
+      rateKey: "json",
+      now: 200_000,
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.code, "unavailable");
+    assert.equal(JSON.stringify(result).includes(secret), false);
+  });
+
+  it("avisa quando o pedido passa do teto de registros", async () => {
+    let calls = 0;
+    const huge = input();
+    huge.observations = Array.from({ length: 41 }, (_, index) => ({
+      ...huge.observations[0],
+      id: `obs-${index}`,
+    }));
+    const result = await assistWith(huge, {
+      apiKey: "k",
+      generate: async () => {
+        calls += 1;
+        return "{}";
+      },
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.code, "invalid");
+      assert.match(result.message, /demais/);
+    }
+    assert.equal(calls, 0);
+  });
+
+  it("mascara sobrenome e maiúsculas sem cortar outra palavra", () => {
+    assert.equal(maskNames("A análise de Ana foi boa.", "Ana Silva"), "A análise de [[A1]] foi boa.");
+    assert.equal(maskNames("o moreira faltou.", "Alice Moreira").includes("moreira"), false);
+    assert.equal(maskNames("Alê chegou e Bruno Carvalho veio.", "Alice Moreira"), "Alê chegou e Bruno Carvalho veio.");
+  });
+
+  it("não envia histórico, id interno nem nome no dossiê", () => {
+    const base = input({
+      attendance: [{ id: "att-alice-2026-08-12", date: "2026-08-12", status: "falta", origin: "local" }],
+      observations: [
+        input().observations[0],
+        { id: "old", date: "2026-01-10", category: "geral", text: "Segredo antigo de Alice Moreira", origin: "local" },
+      ],
+    });
+    const encoded = JSON.stringify(dossierForModel(base, buildFactSheet(base)));
+    assert.equal(encoded.includes("Alice"), false);
+    assert.equal(encoded.includes("Moreira"), false);
+    assert.equal(encoded.includes("alice"), false);
+    assert.equal(encoded.includes("att-alice"), false);
+    assert.equal(encoded.includes("obs-1"), false);
+    assert.equal(encoded.includes("Segredo"), false);
+    assert.equal(encoded.includes("[[A1]]"), true);
+
+    const organized = input({ action: "organizar", rawText: "Falou pouco na correção de equações hoje." });
+    const organizedText = JSON.stringify(dossierForModel(organized, buildFactSheet(organized)));
+    assert.equal(organizedText.includes("explicou"), false);
+    assert.equal(organizedText.includes("Prova"), false);
+    assert.equal(organizedText.includes("Falou pouco"), true);
+    assert.equal(organizedText.includes("Alice"), false);
+  });
+
+  it("ignora o IP enviado pelo cliente e usa só x-real-ip", () => {
+    const headers = {
+      get(name: string) {
+        if (name === "x-forwarded-for") return "9.9.9.9";
+        if (name === "x-real-ip") return "2001:db8::1";
+        return null;
+      },
+    };
+    assert.equal(rateKeyFromHeaders(headers), "ip:2001:db8::1");
+    assert.equal(rateKeyFromHeaders({ get: (name) => (name === "x-forwarded-for" ? "9.9.9.9" : null) }), "unverified");
+    assert.equal(rateKeyFromHeaders({ get: () => "não-é-ip" }), "unverified");
+  });
+
+  it("monta um JSON Schema sem composição que o código não valida", () => {
+    for (const schema of [organizeResponseSchema, analysisResponseSchema]) {
+      const encoded = JSON.stringify(schema);
+      assert.equal(schema.type, "object");
+      assert.equal(encoded.includes("$ref"), false);
+      assert.equal(encoded.includes("anyOf"), false);
+      assert.equal(encoded.includes("oneOf"), false);
+    }
   });
 });

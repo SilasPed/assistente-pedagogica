@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, controlClassName, Eyebrow, Panel } from "@/components/pedagogico/ui";
-import { AI_TAG_LABELS } from "@/lib/pedagogico/ai-contract";
+import { AI_TAG_LABELS } from "@/lib/pedagogico/ai-tags";
 import { assistantAvailability, runAssistant } from "@/lib/pedagogico/ai.functions";
 import type { AssistResult, AssistSuccess } from "@/lib/pedagogico/ai.server";
 import {
   defaultPeriodKey,
   isoDate,
+  inRange,
   periodOptions,
   previousPeriod,
   resolvePeriod,
@@ -63,6 +64,8 @@ export function AssistantView({ today }: { today: Date }) {
 
   const payload = useMemo(() => {
     if (!room || !student) return null;
+    const spans = action === "evolucao" ? [period, prior] : [period];
+    const inWindow = (date: string) => spans.some((span) => inRange(date, span.start, span.end));
     const mine = <T extends { studentId: string; origin: "demo" | "local" }>(rows: T[]) =>
       rows.filter((row) => row.studentId === student.id && row.origin === origin);
     return {
@@ -73,34 +76,49 @@ export function AssistantView({ today }: { today: Date }) {
       comparePeriod:
         action === "evolucao" ? { label: prior.label, start: prior.start, end: prior.end } : undefined,
       rawText: action === "organizar" ? rawText : undefined,
-      observations: mine(data.observations).map((row) => ({
-        id: row.id,
-        date: row.date,
-        category: row.category,
-        text: row.text,
-        origin: row.origin,
-      })),
-      grades: mine(data.grades).map((row) => ({
-        id: row.id,
-        date: row.date,
-        title: row.title,
-        score: row.score,
-        origin: row.origin,
-      })),
-      attendance: mine(data.attendance).map((row) => ({
-        id: row.id,
-        date: row.date,
-        status: row.status,
-        origin: row.origin,
-      })),
+      observations:
+        action === "organizar"
+          ? []
+          : mine(data.observations)
+              .filter((row) => inWindow(row.date))
+              .map((row) => ({
+                id: row.id,
+                date: row.date,
+                category: row.category,
+                text: row.text,
+                origin: row.origin,
+              })),
+      grades:
+        action === "organizar"
+          ? []
+          : mine(data.grades)
+              .filter((row) => inWindow(row.date))
+              .map((row) => ({
+                id: row.id,
+                date: row.date,
+                title: row.title,
+                score: row.score,
+                origin: row.origin,
+              })),
+      attendance:
+        action === "organizar"
+          ? []
+          : mine(data.attendance)
+              .filter((row) => inWindow(row.date))
+              .map((row) => ({
+                id: row.id,
+                date: row.date,
+                status: row.status,
+                origin: row.origin,
+              })),
       exams:
         action === "organizar"
           ? []
           : data.exams
-              .filter((row) => row.classId === room.id && row.origin === origin)
+              .filter((row) => row.classId === room.id && row.origin === origin && inWindow(row.date))
               .map((row) => ({ id: row.id, date: row.date, title: row.title, origin: row.origin })),
     };
-  }, [action, data.attendance, data.exams, data.grades, data.observations, origin, period.end, period.label, period.start, prior.end, prior.label, prior.start, rawText, room, student]);
+  }, [action, data.attendance, data.exams, data.grades, data.observations, origin, period, prior, rawText, room, student]);
 
   async function run() {
     if (!payload || busy) return;
@@ -168,6 +186,9 @@ export function AssistantView({ today }: { today: Date }) {
         </div>
         <p className="text-sm text-muted">
           O texto gerado não é salvo sozinho e não altera nota nem frequência. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta.
+        </p>
+        <p className="text-sm text-muted">
+          Não há login. A checagem de mesma origem não identifica o professor. Não registre dados reais de alunos num endereço público: eles ficam só neste navegador e se perdem ao trocar de aparelho.
         </p>
         {configured === false ? (
           <p className="text-sm text-muted">GEMINI_API_KEY não está definida neste ambiente.</p>

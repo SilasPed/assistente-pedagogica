@@ -83,7 +83,7 @@ function ReadyApp() {
           <p className="text-sm text-muted">{formatLong(isoDate(today))}</p>
         </div>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          Exemplo pronto para usar. Observações, notas e frequência ficam neste aparelho.
+          Exemplo pronto para usar. Observações, notas e frequência ficam só neste navegador.
         </p>
         <nav className="dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0" aria-label="Seções">
           {NAV.map((item) => {

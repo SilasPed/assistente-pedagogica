@@ -4,7 +4,7 @@ import {
   assistInputSchema,
   buildFactSheet,
   dossierForModel,
-  knownEvidenceIds,
+  evidenceFromModelIds,
   organizeResponseSchema,
   organizeResultSchema,
   restoreToken,
@@ -52,6 +52,7 @@ type Generate = (args: {
 
 const WINDOW_MS = 10 * 60 * 1000;
 const LIMIT = 8;
+const INSTANCE_LIMIT = 40;
 const buckets = new Map<string, { count: number; reset: number }>();
 
 export function resetAssistantRateLimit() {
@@ -62,15 +63,46 @@ export function geminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY?.trim());
 }
 
-function takeSlot(key: string, now: number) {
+export function rateKeyFromHeaders(headers: { get(name: string): string | null } | null | undefined) {
+  const real = headers?.get("x-real-ip")?.split(",")[0]?.trim() ?? "";
+  if (real && real.length <= 80 && /^[0-9a-fA-F:.]+$/.test(real)) return `ip:${real}`;
+  return "unverified";
+}
+
+function bucketAllows(key: string, now: number, limit: number) {
+  const current = buckets.get(key);
+  if (!current || now >= current.reset) return true;
+  return current.count < limit;
+}
+
+function bucketCommit(key: string, now: number) {
   const current = buckets.get(key);
   if (!current || now >= current.reset) {
     buckets.set(key, { count: 1, reset: now + WINDOW_MS });
-    return true;
+    return;
   }
-  if (current.count >= LIMIT) return false;
   current.count += 1;
+}
+
+function takeSlot(key: string, now: number) {
+  const caller = `caller:${key}`;
+  if (!bucketAllows(caller, now, LIMIT) || !bucketAllows("instance", now, INSTANCE_LIMIT)) return false;
+  bucketCommit(caller, now);
+  bucketCommit("instance", now);
   return true;
+}
+
+function payloadTooLarge(raw: unknown) {
+  if (!raw || typeof raw !== "object") return false;
+  const row = raw as Record<string, unknown>;
+  const len = (key: string) => (Array.isArray(row[key]) ? row[key].length : 0);
+  return (
+    len("observations") > 40 ||
+    len("grades") > 40 ||
+    len("attendance") > 80 ||
+    len("exams") > 12 ||
+    (typeof row.rawText === "string" && row.rawText.length > 4000)
+  );
 }
 
 function parseModelJson(raw: string) {
@@ -102,7 +134,13 @@ export async function assistWith(
 ): Promise<AssistResult> {
   const parsed = assistInputSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, code: "invalid", message: "Os dados enviados não puderam ser analisados. Nada foi salvo." };
+    return {
+      ok: false,
+      code: "invalid",
+      message: payloadTooLarge(raw)
+        ? "Há registros demais neste pedido. Reduza o período. Nada foi salvo."
+        : "Os dados enviados não puderam ser analisados. Nada foi salvo.",
+    };
   }
   const input = parsed.data;
   if (!sameOrigin(input)) {
@@ -189,8 +227,7 @@ export async function assistWith(
       };
     }
     const analysis = analysisResultSchema.parse(json);
-    const allowed = knownEvidenceIds(sheet);
-    const evidence = sheet.evidence.filter((item) => analysis.evidenceIds.includes(item.id) && allowed.has(item.id));
+    const evidence = evidenceFromModelIds(sheet, analysis.evidenceIds);
     const reading = restoreToken(analysis.reading, name);
     const suggestions = analysis.suggestions.map((item) => restoreToken(item, name));
     const missing = [...sheet.missing, ...analysis.missing.map((item) => restoreToken(item, name))];

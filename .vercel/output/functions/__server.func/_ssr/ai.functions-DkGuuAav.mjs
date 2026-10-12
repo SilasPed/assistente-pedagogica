@@ -1,5 +1,5 @@
 import { n as createServerFn, r as TSS_SERVER_FUNCTION } from "./ssr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ai.functions-B2Bl48QL.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ai.functions-DkGuuAav.js
 var createServerRpc = (serverFnMeta, splitImportFn) => {
 	const url = "/_serverFn/" + serverFnMeta.id;
 	return Object.assign(splitImportFn, {
@@ -14,7 +14,7 @@ var assistantAvailability_createServerFn_handler = createServerRpc({
 	filename: "src/lib/pedagogico/ai.functions.ts"
 }, (opts) => assistantAvailability.__executeServer(opts));
 var assistantAvailability = createServerFn({ method: "POST" }).handler(assistantAvailability_createServerFn_handler, async () => {
-	const { geminiConfigured } = await import("./ai.server-BFJaybUg.mjs");
+	const { geminiConfigured } = await import("./ai.server--nofuska.mjs");
 	return { configured: geminiConfigured() };
 });
 var runAssistant_createServerFn_handler = createServerRpc({
@@ -26,7 +26,7 @@ var runAssistant = createServerFn({ method: "POST" }).validator((input) => input
 	try {
 		const { assertSameSiteRequest, CrossSiteRequestError } = await import("./isolation.server-DdG3f88r.mjs");
 		const { getRequest } = await import("./ssr.mjs").then((n) => n.o).then((n) => n.t);
-		const { assist } = await import("./ai.server-BFJaybUg.mjs");
+		const { assist, rateKeyFromHeaders } = await import("./ai.server--nofuska.mjs");
 		try {
 			assertSameSiteRequest();
 		} catch (error) {
@@ -37,8 +37,7 @@ var runAssistant = createServerFn({ method: "POST" }).validator((input) => input
 			};
 			throw error;
 		}
-		const forwarded = getRequest()?.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-		return await assist(data, forwarded || "local");
+		return await assist(data, rateKeyFromHeaders(getRequest()?.headers));
 	} catch {
 		return {
 			ok: false,

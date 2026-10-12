@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { normalizePedData } from "@/lib/pedagogico/origins";
+import { normalizePedData, restoreDemoData } from "@/lib/pedagogico/origins";
 import { createSeed } from "@/lib/pedagogico/seed";
 import type {
   Attendance,
@@ -117,7 +117,7 @@ export const usePedStore = create<Store>()(
           students: [...state.students, { id: id(), classId, name: trimmed, origin: "local" }],
         }));
       },
-      resetDemo: () => set(createSeed(new Date())),
+      resetDemo: () => set((state) => restoreDemoData(state, createSeed(new Date()))),
     }),
     {
       name: "acompanhamento-pedagogico-v1",

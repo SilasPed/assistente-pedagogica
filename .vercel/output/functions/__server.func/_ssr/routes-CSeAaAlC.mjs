@@ -2,13 +2,13 @@ import { o as __toESM, r as __exportAll } from "../_runtime.mjs";
 import { b as require_jsx_runtime, q as require_react } from "../_libs/@tanstack/react-router+[...].mjs";
 import { i as getServerFnById, n as createServerFn, r as TSS_SERVER_FUNCTION } from "./ssr.mjs";
 import { l as addDays } from "../_libs/date-fns.mjs";
-import { A as relativeDay, D as periodOptions, F as summarizeStudent, N as suggestCategory, O as previousPeriod, P as summarizeClass, S as isoDate, _ as formatDay, b as frequency, d as categoryLabel, f as defaultPeriodKey, g as fmtScore, h as firstName, i as EXAM_KINDS, j as resolvePeriod, k as recentWeekdays, l as attentionForClass, m as examKindLabel, n as ATTENDANCE_OPTIONS, r as CATEGORIES, t as AI_TAG_LABELS, v as formatLong, w as mean, x as inRange, y as formatRange } from "./ai-contract-CXb3E94M.mjs";
+import { C as resolvePeriod, E as summarizeStudent, S as relativeDay, T as summarizeClass, _ as isoDate, a as EXAM_KINDS, b as previousPeriod, c as defaultPeriodKey, d as fmtScore, f as formatDay, g as inRange, h as frequency, i as CATEGORIES, l as examKindLabel, m as formatRange, n as AI_TAG_LABELS, o as attentionForClass, p as formatLong, r as ATTENDANCE_OPTIONS, s as categoryLabel, u as firstName, v as mean, w as suggestCategory, x as recentWeekdays, y as periodOptions } from "./insights-DdMgi_fN.mjs";
 import { t as clsx } from "../_libs/clsx.mjs";
 import { a as Mic, c as Check, i as Plus, l as BookOpen, n as Square, o as House, r as Sparkles, s as ClipboardList } from "../_libs/lucide-react.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";
 import { n as create, t as persist } from "../_libs/zustand.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-CDAOKBno.js
-var routes_CDAOKBno_exports = /* @__PURE__ */ __exportAll({ component: () => SplitComponent });
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-CSeAaAlC.js
+var routes_CSeAaAlC_exports = /* @__PURE__ */ __exportAll({ component: () => SplitComponent });
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function cn(...inputs) {
@@ -78,7 +78,16 @@ function studentOrigin(student) {
 	return DEMO_STUDENT_IDS.has(student.id) ? "demo" : "local";
 }
 function normalizePedData(input) {
-	if (!input?.students?.length && !input?.observations?.length && !input?.classes?.length) return {};
+	if (!input) return {};
+	if (![
+		input?.classes,
+		input?.students,
+		input?.observations,
+		input?.grades,
+		input?.attendance,
+		input?.exams,
+		input?.pendings
+	].some((rows) => Array.isArray(rows) && rows.length > 0)) return {};
 	const classes = (input.classes ?? []).map((room) => ({
 		...room,
 		origin: classOrigin(room.id, room.origin)
@@ -111,6 +120,22 @@ function normalizePedData(input) {
 			...row,
 			origin: asOrigin(row.origin, row.studentId ? originOfStudent(row.studentId) : classOrigin(row.classId))
 		}))
+	};
+}
+function localRows(rows) {
+	return rows.filter((row) => row.origin === "local");
+}
+/** Recria a sala fictícia e preserva o que foi incluído neste aparelho. */
+function restoreDemoData(current, seed) {
+	const seedClassIds = new Set(seed.classes.map((room) => room.id));
+	return {
+		classes: [...seed.classes, ...current.classes.filter((room) => room.origin === "local" && !seedClassIds.has(room.id))],
+		students: [...seed.students, ...localRows(current.students)],
+		observations: [...seed.observations, ...localRows(current.observations)],
+		grades: [...seed.grades, ...localRows(current.grades)],
+		attendance: [...seed.attendance, ...localRows(current.attendance)],
+		exams: [...seed.exams, ...localRows(current.exams)],
+		pendings: [...seed.pendings, ...localRows(current.pendings)]
 	};
 }
 var STATUS = {
@@ -730,7 +755,7 @@ var usePedStore = create()(persist((set) => ({
 			origin: "local"
 		}] }));
 	},
-	resetDemo: () => set(createSeed(/* @__PURE__ */ new Date()))
+	resetDemo: () => set((state) => restoreDemoData(state, createSeed(/* @__PURE__ */ new Date())))
 }), {
 	name: "acompanhamento-pedagogico-v1",
 	skipHydration: true,
@@ -799,6 +824,8 @@ function AssistantView({ today }) {
 	}, []);
 	const payload = (0, import_react.useMemo)(() => {
 		if (!room || !student) return null;
+		const spans = action === "evolucao" ? [period, prior] : [period];
+		const inWindow = (date) => spans.some((span) => inRange(date, span.start, span.end));
 		const mine = (rows) => rows.filter((row) => row.studentId === student.id && row.origin === origin);
 		return {
 			action,
@@ -820,27 +847,27 @@ function AssistantView({ today }) {
 				end: prior.end
 			} : void 0,
 			rawText: action === "organizar" ? rawText : void 0,
-			observations: mine(data.observations).map((row) => ({
+			observations: action === "organizar" ? [] : mine(data.observations).filter((row) => inWindow(row.date)).map((row) => ({
 				id: row.id,
 				date: row.date,
 				category: row.category,
 				text: row.text,
 				origin: row.origin
 			})),
-			grades: mine(data.grades).map((row) => ({
+			grades: action === "organizar" ? [] : mine(data.grades).filter((row) => inWindow(row.date)).map((row) => ({
 				id: row.id,
 				date: row.date,
 				title: row.title,
 				score: row.score,
 				origin: row.origin
 			})),
-			attendance: mine(data.attendance).map((row) => ({
+			attendance: action === "organizar" ? [] : mine(data.attendance).filter((row) => inWindow(row.date)).map((row) => ({
 				id: row.id,
 				date: row.date,
 				status: row.status,
 				origin: row.origin
 			})),
-			exams: action === "organizar" ? [] : data.exams.filter((row) => row.classId === room.id && row.origin === origin).map((row) => ({
+			exams: action === "organizar" ? [] : data.exams.filter((row) => row.classId === room.id && row.origin === origin && inWindow(row.date)).map((row) => ({
 				id: row.id,
 				date: row.date,
 				title: row.title,
@@ -854,12 +881,8 @@ function AssistantView({ today }) {
 		data.grades,
 		data.observations,
 		origin,
-		period.end,
-		period.label,
-		period.start,
-		prior.end,
-		prior.label,
-		prior.start,
+		period,
+		prior,
 		rawText,
 		room,
 		student
@@ -931,6 +954,10 @@ function AssistantView({ today }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-muted",
 						children: "O texto gerado não é salvo sozinho e não altera nota nem frequência. Sem a chave do Gemini no servidor, nada é inventado no lugar da resposta."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm text-muted",
+						children: "Não há login. A checagem de mesma origem não identifica o professor. Não registre dados reais de alunos num endereço público: eles ficam só neste navegador e se perdem ao trocar de aparelho."
 					}),
 					configured === false ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-muted",
@@ -1246,7 +1273,7 @@ function ClassesView({ today, onOpenStudent }) {
 			className: "flex flex-col items-start gap-2 px-1",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-sm text-muted",
-				children: "Os registros ficam neste aparelho."
+				children: "Restaurar o exemplo recria a sala fictícia e mantém alunos e registros incluídos por você. Outro navegador não recebe cópia."
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				type: "button",
 				className: "text-sm font-medium text-muted",
@@ -2505,7 +2532,7 @@ function ReadyApp() {
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "mt-2 max-w-xl text-sm text-muted",
-					children: "Exemplo pronto para usar. Observações, notas e frequência ficam neste aparelho."
+					children: "Exemplo pronto para usar. Observações, notas e frequência ficam só neste navegador."
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 					className: "dock fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-line bg-card md:static md:mt-5 md:flex md:gap-2 md:border-0 md:bg-transparent md:p-0",
@@ -2558,4 +2585,4 @@ function ReadyApp() {
 }
 var SplitComponent = PedagogicoApp;
 //#endregion
-export { SplitComponent as component, routes_CDAOKBno_exports as t };
+export { SplitComponent as component, routes_CSeAaAlC_exports as t };

@@ -12,7 +12,7 @@ export const runAssistant = createServerFn({ method: "POST" })
     try {
       const { assertSameSiteRequest, CrossSiteRequestError } = await import("@/lib/auth/isolation.server");
       const { getRequest } = await import("@tanstack/react-start/server");
-      const { assist } = await import("@/lib/pedagogico/ai.server");
+      const { assist, rateKeyFromHeaders } = await import("@/lib/pedagogico/ai.server");
       try {
         assertSameSiteRequest();
       } catch (error) {
@@ -21,8 +21,8 @@ export const runAssistant = createServerFn({ method: "POST" })
         }
         throw error;
       }
-      const forwarded = getRequest()?.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-      return await assist(data, forwarded || "local");
+      const request = getRequest();
+      return await assist(data, rateKeyFromHeaders(request?.headers));
     } catch {
       return {
         ok: false,
